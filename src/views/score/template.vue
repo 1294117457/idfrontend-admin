@@ -17,6 +17,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="maxScore" label="该项总分" width="120" />
+        <el-table-column prop="reviewCount" label="审核次数" width="100" align="center" />
         <el-table-column prop="description" label="说明" show-overflow-tooltip />
         <el-table-column label="操作" width="250">
           <template #default="{ row }">

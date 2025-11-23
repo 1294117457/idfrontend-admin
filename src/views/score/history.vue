@@ -109,19 +109,16 @@
           <el-descriptions-item label="姓名">{{ selectedRecord.studentName }}</el-descriptions-item>
           <el-descriptions-item label="专业" :span="2">{{ selectedRecord.major }}</el-descriptions-item>
           <el-descriptions-item label="加分项">{{ selectedRecord.templateName }}</el-descriptions-item>
-          <!-- ✅ 使用 applyScore -->
           <el-descriptions-item label="申请得分">
             <span class="text-lg font-bold text-red-500">{{ selectedRecord.applyScore }}分</span>
           </el-descriptions-item>
           
-          <!-- 审核状态 -->
           <el-descriptions-item label="审核状态">
             <el-tag :type="getStatusType(selectedRecord.status)">
               {{ getStatusText(selectedRecord.status) }}
             </el-tag>
           </el-descriptions-item>
 
-          <!-- 审核进度 -->
           <el-descriptions-item label="审核进度">
             <el-progress 
               :percentage="(selectedRecord.currentReviewCount / selectedRecord.reviewCount) * 100"
@@ -129,34 +126,34 @@
             />
           </el-descriptions-item>
 
-          <!-- ✅ 使用 ruleValues -->
           <el-descriptions-item label="规则填写值" :span="2">
             {{ formatRuleValues(selectedRecord.ruleValues) }}
           </el-descriptions-item>
 
-          <!-- 备注 -->
           <el-descriptions-item label="备注" :span="2" v-if="selectedRecord.remark">
             {{ selectedRecord.remark }}
           </el-descriptions-item>
         </el-descriptions>
 
-        <!-- 证明文件预览 -->
-        <div v-if="selectedRecord.proofFiles" class="mt-4">
+        <!-- ✅ 使用 FileUtil 组件预览证明文件 -->
+        <div v-if="selectedRecord.proofFiles && parseProofFiles(selectedRecord.proofFiles).length > 0" class="mt-4">
           <el-divider content-position="left">证明文件</el-divider>
-          <div class="flex flex-wrap gap-2">
-            <el-image
-              v-for="(file, index) in parseProofFiles(selectedRecord.proofFiles)"
-              :key="index"
-              :src="file"
-              :preview-src-list="parseProofFiles(selectedRecord.proofFiles)"
-              :initial-index="index"
-              fit="cover"
-              class="w-24 h-24 rounded cursor-pointer border"
-            />
-          </div>
+          <FileUtil
+            v-model="previewFileList"
+            :show-upload-button="false"
+            :show-file-list="true"
+            :show-preview-button="true"
+            :show-delete-button="false"
+            :show-download-in-dialog="true"
+            :disabled="true"
+            :icon-size="20"
+            upload-text=""
+            :show-tip="false"
+            :get-file-url="handleGetFileUrl"
+          />
         </div>
 
-        <!-- ✅ 修改: auditRecords → reviewRecords -->
+        <!-- 完整审核记录 -->
         <div v-if="selectedRecord.reviewRecords && parseReviewRecords(selectedRecord.reviewRecords).length > 0" class="mt-4">
           <el-divider content-position="left">完整审核记录</el-divider>
           <el-timeline>
@@ -166,8 +163,17 @@
               :timestamp="review.timestamp"
               :type="review.action === 'approved' ? 'success' : 'danger'"
             >
-              <p><strong>{{ review.reviewerName }}</strong> {{ review.action === 'approved' ? '通过' : '驳回' }}</p>
-              <p class="text-gray-600">{{ review.comment }}</p>
+              <el-card>
+                <template #header>
+                  <div class="flex justify-between items-center">
+                    <span class="font-bold">{{ review.reviewerName }}</span>
+                    <el-tag :type="review.action === 'approved' ? 'success' : 'danger'" size="small">
+                      {{ review.action === 'approved' ? '通过' : '驳回' }}
+                    </el-tag>
+                  </div>
+                </template>
+                <p class="text-gray-700">{{ review.comment }}</p>
+              </el-card>
             </el-timeline-item>
           </el-timeline>
         </div>
@@ -185,8 +191,50 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getAuditHistoryPaged } from '@/api/components/apiExamine'
+import { getAuditHistoryPaged, getFileUrl } from '@/api/components/apiExamine'
+// ✅ 导入 FileUtil 组件
+import FileUtil from '@/components/fileUtil.vue'
 
+// ✅ 文件预览列表
+const previewFileList = ref<UploadUserFile[]>([])
+
+// ✅ 获取文件URL
+const handleGetFileUrl = async (fileUrl: string, type: number) => {
+  try {
+    const response = await getFileUrl(fileUrl, type)
+    console.log('✅ 获取文件URL响应:', response)
+    return response
+  } catch (error) {
+    console.error('❌ 获取文件链接失败:', error)
+    throw error
+  }
+}
+
+// ✅ 修改 handleViewDetail 函数
+const handleViewDetail = (row: any) => {
+  selectedRecord.value = { ...row }
+  
+  // ✅ 将证明文件转换为 UploadUserFile 格式
+  const files = parseProofFiles(row.proofFiles)
+  previewFileList.value = files.map((url: string, index: number) => ({
+    name: `证明文件${index + 1}.${getFileExtFromUrl(url)}`,
+    url: url,
+    uid: Date.now() + index,
+    status: 'success' as const
+  }))
+  
+  showDialog.value = true
+}
+
+// ✅ 从 URL 中提取文件扩展名
+const getFileExtFromUrl = (url: string): string => {
+  try {
+    const parts = url.split('.')
+    return parts[parts.length - 1] || 'file'
+  } catch {
+    return 'file'
+  }
+}
 // 搜索相关
 const searchStudentId = ref('')
 const searchStudentName = ref('')
@@ -252,10 +300,7 @@ const handleSizeChange = (size: number) => {
   loadData()
 }
 
-const handleViewDetail = (row: any) => {
-  selectedRecord.value = { ...row }
-  showDialog.value = true
-}
+
 
 // ✅ 使用 ruleValues
 const formatRuleValues = (json: string) => {

@@ -56,3 +56,14 @@ export const getAuditHistoryPaged = async (
   })
   return response.data
 }
+/**
+ * ✅ 获取文件URL (预览/下载统一接口)
+ * @param fileUrl 文件URL
+ * @param type 0=预览, 1=下载
+ */
+export const getFileUrl = async (fileUrl: string, type: number = 0) => {
+  const response = await apiClient.get('/api/student-bonus/file/url', {
+    params: { fileUrl, type }
+  })
+  return response.data
+}
