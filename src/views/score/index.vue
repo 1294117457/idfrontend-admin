@@ -189,11 +189,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import type { UploadUserFile } from 'element-plus'
 import { 
   approveRecord, 
   rejectRecord,
   getPendingRecordsPaged,
-  getFileUrl 
+  getFileUrl,
+  type AuditRecord
 } from '@/api/components/apiExamine'
 import FileUtil from '@/components/fileUtil.vue'
 
@@ -203,7 +205,7 @@ const previewFileList = ref<UploadUserFile[]>([])
 // ✅ 获取文件URL
 const handleGetFileUrl = async (fileUrl: string, type: number) => {
   try {
-    const response = await getFileUrl(fileUrl, type)
+    const response = await getFileUrl(fileUrl, type as 0 | 1)
     console.log('✅ 获取文件URL响应:', response)
     return response
   } catch (error) {
@@ -213,12 +215,12 @@ const handleGetFileUrl = async (fileUrl: string, type: number) => {
 }
 
 // ✅ 修改 handleViewDetail 函数
-const handleViewDetail = (row: any) => {
+const handleViewDetail = (row: AuditRecord) => {
   selectedRecord.value = { ...row }
   auditComment.value = ''
   
   // ✅ 将证明文件转换为 UploadUserFile 格式
-  const files = parseProofFiles(row.proofFiles)
+  const files = parseProofFiles(row.proofFiles || '')
   previewFileList.value = files.map((url: string, index: number) => ({
     name: `证明文件${index + 1}.${getFileExtFromUrl(url)}`,
     url: url,
@@ -238,6 +240,7 @@ const getFileExtFromUrl = (url: string): string => {
     return 'file'
   }
 }
+
 // 搜索相关
 const searchStudentId = ref('')
 const searchStudentName = ref('')
@@ -250,14 +253,14 @@ const totalItems = ref(0)
 const loading = ref(false)
 
 // 数据
-const pendingRecords = ref<any[]>([])
+const pendingRecords = ref<AuditRecord[]>([])
 
 // 审核弹窗
 const showDialog = ref(false)
-const selectedRecord = ref<any>(null)
+const selectedRecord = ref<AuditRecord | null>(null)
 const auditComment = ref('')
 
-// 加载数据
+// ✅ 修复 loadData 函数
 const loadData = async () => {
   loading.value = true
   try {
@@ -268,9 +271,12 @@ const loadData = async () => {
       searchStudentName.value || undefined,
       searchMajor.value || undefined
     )
+    
     if (response.code === 200) {
       pendingRecords.value = response.data.records || []
       totalItems.value = response.data.total || 0
+    } else {
+      ElMessage.error(response.msg || '加载数据失败')
     }
   } catch (error) {
     console.error('加载数据失败:', error)
@@ -304,8 +310,9 @@ const handleSizeChange = (size: number) => {
   loadData()
 }
 
-
 const handleApprove = async () => {
+  if (!selectedRecord.value) return
+  
   try {
     const response = await approveRecord({
       recordId: selectedRecord.value.id,
@@ -326,6 +333,8 @@ const handleApprove = async () => {
 }
 
 const handleReject = async () => {
+  if (!selectedRecord.value) return
+  
   if (!auditComment.value.trim()) {
     ElMessage.warning('请输入驳回理由')
     return
@@ -350,8 +359,8 @@ const handleReject = async () => {
   }
 }
 
-// ✅ 使用 ruleValues
-const formatRuleValues = (json: string) => {
+// ✅ 格式化规则值
+const formatRuleValues = (json: string | undefined) => {
   if (!json) return '-'
   try {
     const obj = JSON.parse(json)
@@ -363,7 +372,8 @@ const formatRuleValues = (json: string) => {
   }
 }
 
-const parseProofFiles = (json: string) => {
+// ✅ 解析证明文件
+const parseProofFiles = (json: string): string[] => {
   if (!json) return []
   try {
     const files = JSON.parse(json)
@@ -373,8 +383,8 @@ const parseProofFiles = (json: string) => {
   }
 }
 
-// ✅ 修改函数名: parseAuditRecords → parseReviewRecords
-const parseReviewRecords = (json: string) => {
+// ✅ 解析审核记录
+const parseReviewRecords = (json: string | undefined) => {
   if (!json) return []
   try {
     const records = JSON.parse(json)
@@ -384,7 +394,8 @@ const parseReviewRecords = (json: string) => {
   }
 }
 
-const formatDateTime = (datetime: string) => {
+// ✅ 格式化日期时间
+const formatDateTime = (datetime: string | undefined) => {
   if (!datetime) return '-'
   try {
     return new Date(datetime).toLocaleString('zh-CN', {

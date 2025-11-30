@@ -6,19 +6,22 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 // ✅ 修改导入: 使用 adminLoginPost
-import { type LoginDto, adminLoginPost } from '@/api/components/apiLogin'
+import { type LoginDto, adminLoginPost, type CaptchaResponse, getCaptcha } from '@/api/components/apiLogin'
+import { useUserStore } from '@/stores/profile'
 
+const userStore = useUserStore()
 const router = useRouter()
-const apiBaseUrl = import.meta.env.VITE_BASE_API;
 const captchaUrl = ref('')
+const captchaData = ref<CaptchaResponse | null>(null)
 
 const refreshCaptcha = async () => {
   try {
-    const response = await axios.get(`${apiBaseUrl}/api/authserver/captcha/generate`)
-    loginBody.value.captchaId = response.data.captchaId;
-    captchaUrl.value = response.data.base64
+    captchaData.value = await getCaptcha()
+    loginBody.value.captchaId = captchaData.value.captchaId
+    captchaUrl.value = captchaData.value.base64
   } catch (error) {
-    console.error('获取验证码失败', error)
+    console.error('获取验证码失败:', error)
+    ElMessage.error('获取验证码失败，请重试')
   }
 }
 
@@ -28,44 +31,44 @@ const loginBody = ref<LoginDto>({
   verifyCode: '',
   captchaId: '',
 })
-
-// ✅ 修改: 调用管理员登录接口
-const submitLogin = async () => {
+const validate = (): boolean => {  // ✅ 返回boolean
   if (!loginBody.value.username) {
     ElMessage.error('请输入用户名')
-    return
+    return false  // ✅ 返回false
   }
   if (!loginBody.value.password) {
     ElMessage.error('请输入密码')
-    return
+    return false  // ✅ 返回false
   }
   if (!loginBody.value.verifyCode) {
     ElMessage.error('请输入验证码')
-    return
+    return false  // ✅ 返回false
   }
-  
+  return true  // ✅ 验证通过返回true
+}
+// ✅ 修改: 调用管理员登录接口
+const submitLogin = async () => {
+  if (!validate()) return;
   try {
     // ✅ 使用管理员登录接口
     const response = await adminLoginPost(loginBody.value);
     console.log('登录响应', response);
-
     if (response.code === 200) {
-      ElMessage.success(response.msg);
-      localStorage.setItem('access_token', response.data.accessToken);
-      localStorage.setItem('refresh_token', response.data.refreshToken);
-      router.push('/home');
-    } else if (response.code === 400) {
-      ElMessage.error(response.msg);
-      refreshCaptcha();
-    } else if (response.code === 401) {
-      ElMessage.error(response.msg);
-      refreshCaptcha();
+      localStorage.setItem('accessToken', response.data.accessToken);
+      localStorage.setItem('refreshToken', response.data.refreshToken);
+      ElMessage.success('登录成功');
+      router.push('/home')
+      const success = await userStore.fetchUserData()
+      if (!success) {
+        ElMessage.error('获取用户信息失败，请稍后重试')
+      }
     } else {
-      ElMessage.error(response.msg || '未知错误,请稍后重试');
+      ElMessage.error(response.msg || '登录失败');
     }
   } catch (error) {
     console.error('登录失败', error);
     ElMessage.error('网络错误,请稍后重试');
+  } finally{
     refreshCaptcha();
   }
 }

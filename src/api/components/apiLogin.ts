@@ -16,15 +16,8 @@ export interface resType {
   data: string;
 }
 
-// ✅ Token 响应接口 - 使用下划线命名
+// ✅ 统一使用驼峰命名
 export interface TokenResponse {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-}
-
-// ✅ 登录响应 DTO - 使用驼峰命名
-export interface LoginODTO {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
@@ -33,7 +26,7 @@ export interface LoginODTO {
 export interface LoginResType {
   code: number;
   msg: string;
-  data: LoginODTO;
+  data: TokenResponse;
 }
 
 // ✅ 刷新 token - 使用原生 axios,转换字段名
@@ -42,10 +35,10 @@ export const refreshToken = async (refreshToken: string): Promise<TokenResponse>
     const response = await axios.post<{
       code: number;
       msg: string;
-      data: LoginODTO; // 后端返回驼峰
+      data: TokenResponse;
     }>(
       `${apiBaseUrl}/api/authserver/refresh`,
-      { refresh_token: refreshToken },
+      { refreshToken: refreshToken },  // ✅ 发送驼峰命名
       { headers: { 'Content-Type': 'application/json' } }
     );
     
@@ -55,17 +48,14 @@ export const refreshToken = async (refreshToken: string): Promise<TokenResponse>
       throw new Error(response.data.msg || '刷新失败');
     }
     
-    // ✅ 转换为下划线命名
-    return {
-      access_token: response.data.data.accessToken,
-      refresh_token: response.data.data.refreshToken,
-      expires_in: response.data.data.expiresIn
-    };
+    // ✅ 直接返回驼峰命名
+    return response.data.data;
   } catch (error) {
     console.error('刷新 token 失败:', error);
     throw new Error('刷新token失败');
   }
 };
+
 
 // ✅ 登录
 export const loginPost = async (logdto: LoginDto): Promise<LoginResType> => {
@@ -111,3 +101,22 @@ export const regesterRequest = async (reItem: RegisterItem) => {
     throw new Error('注册请求失败,请稍后重试');
   }
 }
+// 获取验证码图片
+// ✅ 验证码相关接口
+export interface CaptchaResponse {
+  captchaId: string;
+  base64: string;
+}
+
+// ✅ 获取验证码
+export const getCaptcha = async (): Promise<CaptchaResponse> => {
+  try {
+    const response = await axios.get<CaptchaResponse>(
+      `${apiBaseUrl}/api/authserver/captcha/generate`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('获取验证码失败:', error);
+    throw new Error('获取验证码失败');
+  }
+};

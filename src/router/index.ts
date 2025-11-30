@@ -1,15 +1,22 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { useUserStore } from '@/stores/profile'  // ✅ 导入 useUserStore
 import homeRoutes from './home'
 import loginRoutes from './login'
 
 const routes = [
-  ...loginRoutes,// 等价于把 loginRoutes 的每个对象都放进 routes
+  ...loginRoutes,
   homeRoutes,
 ]
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),//来自vite.config.ts
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+})
+
+// ✅ 全局前置守卫 - 统一处理用户信息获取
+router.beforeEach(async (to, from, next) => {
+  next();
 })
 
 export default router
