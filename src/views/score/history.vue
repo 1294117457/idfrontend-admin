@@ -48,7 +48,6 @@
         <el-table-column prop="major" label="专业" width="150" align="center" show-overflow-tooltip />
         <el-table-column prop="templateName" label="加分项名称" width="150" align="center" />
         
-        <!-- 审核状态 -->
         <el-table-column label="审核状态" width="100" align="center">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">
@@ -57,7 +56,6 @@
           </template>
         </el-table-column>
 
-        <!-- 审核进度 -->
         <el-table-column label="审核进度" width="120" align="center">
           <template #default="{ row }">
             <el-progress 
@@ -67,17 +65,28 @@
           </template>
         </el-table-column>
 
-        <!-- ✅ 使用 applyScore -->
         <el-table-column prop="applyScore" label="申请得分" width="100" align="center" />
-        <el-table-column prop="submitTime" label="提交时间" width="160" align="center">
+        <el-table-column prop="submitTime" label="提交时间" min-width="160" align="center">
           <template #default="{ row }">
             {{ formatDateTime(row.submitTime) }}
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="100" align="center" fixed="right">
+        <el-table-column label="操作" width="200" align="center" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" size="small" @click="handleViewDetail(row)">查看详情</el-button>
+            <el-space direction="vertical" :size="5">
+              <el-button type="primary" size="small" @click="handleViewDetail(row)">
+                查看详情
+              </el-button>
+              <el-button 
+                v-if="row.status === 1"
+                type="danger" 
+                size="small" 
+                @click="handleRevoke(row)"
+              >
+                撤销申请
+              </el-button>
+            </el-space>
           </template>
         </el-table-column>
       </el-table>
@@ -96,7 +105,7 @@
       </div>
     </el-card>
 
-    <!-- 详情弹窗 -->
+    <!-- ✅ 详情弹窗 -->
     <el-dialog 
       v-model="showDialog" 
       title="审核详情" 
@@ -110,20 +119,13 @@
           <el-descriptions-item label="专业" :span="2">{{ selectedRecord.major }}</el-descriptions-item>
           <el-descriptions-item label="加分项">{{ selectedRecord.templateName }}</el-descriptions-item>
           <el-descriptions-item label="申请得分">
-            <span class="text-lg font-bold text-red-500">{{ selectedRecord.applyScore }}分</span>
+            <el-tag type="primary" size="large">{{ selectedRecord.applyScore }} 分</el-tag>
           </el-descriptions-item>
           
-          <el-descriptions-item label="审核状态">
+          <el-descriptions-item label="审核状态" :span="2">
             <el-tag :type="getStatusType(selectedRecord.status)">
               {{ getStatusText(selectedRecord.status) }}
             </el-tag>
-          </el-descriptions-item>
-
-          <el-descriptions-item label="审核进度">
-            <el-progress 
-              :percentage="(selectedRecord.currentReviewCount / selectedRecord.reviewCount) * 100"
-              :format="() => `${selectedRecord.currentReviewCount}/${selectedRecord.reviewCount} 人已审核`"
-            />
           </el-descriptions-item>
 
           <el-descriptions-item label="规则填写值" :span="2">
@@ -135,53 +137,103 @@
           </el-descriptions-item>
         </el-descriptions>
 
-        <!-- ✅ 使用 FileUtil 组件预览证明文件 -->
-        <div v-if="selectedRecord.proofFiles && parseProofFiles(selectedRecord.proofFiles).length > 0" class="mt-4">
+        <!-- ✅ 使用新的 FileUtil 组件预览证明文件 -->
+        <div v-if="detailProofFiles.length > 0" class="mt-4">
           <el-divider content-position="left">证明文件</el-divider>
           <FileUtil
-            v-model="previewFileList"
+            v-model="detailProofFiles"
             :show-upload-button="false"
-            :show-file-list="true"
             :show-preview-button="true"
+            :show-download-button="true"
             :show-delete-button="false"
-            :show-download-in-dialog="true"
             :disabled="true"
-            :icon-size="20"
-            upload-text=""
-            :show-tip="false"
-            :get-file-url="handleGetFileUrl"
+          />
+        </div>
+        
+        <!-- ✅ 兼容旧数据提示 -->
+        <div v-else-if="selectedRecord.proofFiles && hasOldFormatFiles(selectedRecord.proofFiles)" class="mt-4">
+          <el-divider content-position="left">证明文件</el-divider>
+          <el-alert 
+            type="warning" 
+            :closable="false"
+            title="旧数据格式，暂不支持在线预览"
+            description="此申请使用旧的文件存储格式，如需查看请联系管理员"
           />
         </div>
 
-        <!-- 完整审核记录 -->
+        <!-- ✅ 完整审核记录 -->
         <div v-if="selectedRecord.reviewRecords && parseReviewRecords(selectedRecord.reviewRecords).length > 0" class="mt-4">
           <el-divider content-position="left">完整审核记录</el-divider>
           <el-timeline>
             <el-timeline-item 
               v-for="(review, index) in parseReviewRecords(selectedRecord.reviewRecords)" 
               :key="index"
-              :timestamp="review.timestamp"
-              :type="review.action === 'approved' ? 'success' : 'danger'"
+              :type="getReviewTimelineType(review.action)"
+              :color="getReviewColor(review.action)"
             >
-              <el-card>
-                <template #header>
-                  <div class="flex justify-between items-center">
-                    <span class="font-bold">{{ review.reviewerName }}</span>
-                    <el-tag :type="review.action === 'approved' ? 'success' : 'danger'" size="small">
-                      {{ review.action === 'approved' ? '通过' : '驳回' }}
-                    </el-tag>
-                  </div>
-                </template>
-                <p class="text-gray-700">{{ review.comment }}</p>
-              </el-card>
+              <div class="flex flex-col gap-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold">{{ review.reviewerName }}</span>
+                  <el-tag :type="getReviewTagType(review.action)" size="small">
+                    {{ getActionText(review.action) }}
+                  </el-tag>
+                </div>
+                <div class="text-sm text-gray-600">
+                  {{ review.comment }}
+                </div>
+                <div class="text-xs text-gray-400">
+                  {{ formatDateTime(review.timestamp) }}
+                </div>
+              </div>
             </el-timeline-item>
           </el-timeline>
         </div>
       </div>
       
       <template #footer>
-        <div class="flex justify-end">
+        <div class="flex justify-end gap-2">
           <el-button @click="showDialog = false">关闭</el-button>
+          <el-button 
+            v-if="selectedRecord?.status === 1"
+            type="danger" 
+            @click="handleRevokeFromDetail"
+          >
+            撤销申请
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- ✅ 撤销原因弹窗 -->
+    <el-dialog 
+      v-model="revokeDialogVisible" 
+      title="撤销申请" 
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="80px">
+        <el-form-item label="撤销原因" required>
+          <el-input
+            v-model="revokeReason"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入撤销原因"
+            maxlength="200"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <el-button @click="revokeDialogVisible = false">取消</el-button>
+          <el-button 
+            type="danger" 
+            @click="confirmRevoke"
+            :loading="revoking"
+          >
+            确认撤销
+          </el-button>
         </div>
       </template>
     </el-dialog>
@@ -190,52 +242,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { getAuditHistoryPaged, getFileUrl } from '@/api/components/apiExamine'
-// ✅ 导入 FileUtil 组件
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { 
+  getAuditHistoryPaged, 
+  revokeRecord, 
+  type AuditRecord,
+  type ProofFileItem
+} from '@/api/components/apiScore'
 import FileUtil from '@/components/fileUtil.vue'
 
-// ✅ 文件预览列表
-const previewFileList = ref<UploadUserFile[]>([])
-
-// ✅ 获取文件URL
-const handleGetFileUrl = async (fileUrl: string, type: number) => {
-  try {
-    const response = await getFileUrl(fileUrl, type)
-    console.log('✅ 获取文件URL响应:', response)
-    return response
-  } catch (error) {
-    console.error('❌ 获取文件链接失败:', error)
-    throw error
-  }
-}
-
-// ✅ 修改 handleViewDetail 函数
-const handleViewDetail = (row: any) => {
-  selectedRecord.value = { ...row }
-  
-  // ✅ 将证明文件转换为 UploadUserFile 格式
-  const files = parseProofFiles(row.proofFiles)
-  previewFileList.value = files.map((url: string, index: number) => ({
-    name: `证明文件${index + 1}.${getFileExtFromUrl(url)}`,
-    url: url,
-    uid: Date.now() + index,
-    status: 'success' as const
-  }))
-  
-  showDialog.value = true
-}
-
-// ✅ 从 URL 中提取文件扩展名
-const getFileExtFromUrl = (url: string): string => {
-  try {
-    const parts = url.split('.')
-    return parts[parts.length - 1] || 'file'
-  } catch {
-    return 'file'
-  }
-}
-// 搜索相关
+// ==================== 基础状态 ====================
+const loading = ref(false)
 const searchStudentId = ref('')
 const searchStudentName = ref('')
 const searchMajor = ref('')
@@ -244,16 +261,65 @@ const searchMajor = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
 const totalItems = ref(0)
-const loading = ref(false)
 
 // 数据
-const historyRecords = ref<any[]>([])
+const historyRecords = ref<AuditRecord[]>([])
 
-// 详情弹窗
+// ✅ 详情弹窗状态
 const showDialog = ref(false)
-const selectedRecord = ref<any>(null)
+const selectedRecord = ref<AuditRecord | null>(null)
 
-// 加载数据
+// ✅ 详情弹窗中的证明文件列表（新格式）
+const detailProofFiles = ref<ProofFileItem[]>([])
+
+// ✅ 撤销相关状态
+const revokeDialogVisible = ref(false)
+const revokeReason = ref('')
+const revoking = ref(false)
+let currentRevokeRecord: AuditRecord | null = null
+
+// ==================== ✅ 解析证明文件（支持新旧格式） ====================
+const parseProofFiles = (json: string): ProofFileItem[] => {
+  if (!json) return []
+  try {
+    const files = JSON.parse(json)
+    if (!Array.isArray(files)) return []
+    
+    // ✅ 检查是否为新格式 [{fileId, fileName}]
+    if (files.length > 0 && typeof files[0] === 'object' && files[0].fileId !== undefined) {
+      return files as ProofFileItem[]
+    }
+    
+    // ✅ 旧格式返回空数组
+    return []
+  } catch {
+    return []
+  }
+}
+
+// ✅ 检查是否有旧格式文件
+const hasOldFormatFiles = (json: string): boolean => {
+  if (!json) return false
+  try {
+    const files = JSON.parse(json)
+    if (!Array.isArray(files) || files.length === 0) return false
+    return typeof files[0] === 'string'
+  } catch {
+    return false
+  }
+}
+
+// ==================== 查看详情 ====================
+const handleViewDetail = (row: AuditRecord) => {
+  selectedRecord.value = { ...row }
+  
+  // ✅ 解析证明文件为新格式
+  detailProofFiles.value = parseProofFiles(row.proofFiles || '')
+  
+  showDialog.value = true
+}
+
+// ==================== 数据加载 ====================
 const loadData = async () => {
   loading.value = true
   try {
@@ -264,9 +330,12 @@ const loadData = async () => {
       searchStudentName.value || undefined,
       searchMajor.value || undefined
     )
+    
     if (response.code === 200) {
       historyRecords.value = response.data.records || []
       totalItems.value = response.data.total || 0
+    } else {
+      ElMessage.error(response.msg || '加载数据失败')
     }
   } catch (error) {
     console.error('加载数据失败:', error)
@@ -300,10 +369,69 @@ const handleSizeChange = (size: number) => {
   loadData()
 }
 
+// ==================== 撤销相关 ====================
+const handleRevoke = async (row: AuditRecord) => {
+  if (row.status !== 1) {
+    ElMessage.warning('只能撤销已通过的申请')
+    return
+  }
+  
+  currentRevokeRecord = row
+  revokeReason.value = ''
+  revokeDialogVisible.value = true
+}
 
+const handleRevokeFromDetail = () => {
+  if (selectedRecord.value) {
+    handleRevoke(selectedRecord.value)
+  }
+}
 
-// ✅ 使用 ruleValues
-const formatRuleValues = (json: string) => {
+const confirmRevoke = async () => {
+  if (!currentRevokeRecord) return
+  
+  if (!revokeReason.value.trim()) {
+    ElMessage.warning('请输入撤销原因')
+    return
+  }
+  
+  try {
+    await ElMessageBox.confirm(
+      '撤销后将从学生信息中扣除对应分数，确定要撤销吗？',
+      '确认撤销',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+    
+    revoking.value = true
+    const response = await revokeRecord({
+      recordId: currentRevokeRecord.id,
+      reason: revokeReason.value.trim()
+    })
+    
+    if (response.code === 200) {
+      ElMessage.success('撤销成功')
+      revokeDialogVisible.value = false
+      showDialog.value = false
+      await loadData()
+    } else {
+      ElMessage.error(response.msg || '撤销失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('撤销失败:', error)
+      ElMessage.error('撤销失败')
+    }
+  } finally {
+    revoking.value = false
+  }
+}
+
+// ==================== 辅助函数 ====================
+const formatRuleValues = (json: string | undefined) => {
   if (!json) return '-'
   try {
     const obj = JSON.parse(json)
@@ -315,18 +443,7 @@ const formatRuleValues = (json: string) => {
   }
 }
 
-const parseProofFiles = (json: string) => {
-  if (!json) return []
-  try {
-    const files = JSON.parse(json)
-    return Array.isArray(files) ? files : []
-  } catch {
-    return []
-  }
-}
-
-// ✅ 修改函数名: parseAuditRecords → parseReviewRecords
-const parseReviewRecords = (json: string) => {
+const parseReviewRecords = (json: string | undefined) => {
   if (!json) return []
   try {
     const records = JSON.parse(json)
@@ -336,7 +453,7 @@ const parseReviewRecords = (json: string) => {
   }
 }
 
-const formatDateTime = (datetime: string) => {
+const formatDateTime = (datetime: string | undefined) => {
   if (!datetime) return '-'
   try {
     return new Date(datetime).toLocaleString('zh-CN', {
@@ -356,7 +473,8 @@ const getStatusText = (status: number) => {
   const map: Record<number, string> = {
     0: '待审核',
     1: '已通过',
-    2: '已驳回'
+    2: '已驳回',
+    4: '已撤销'
   }
   return map[status] || '未知'
 }
@@ -365,11 +483,49 @@ const getStatusType = (status: number) => {
   const map: Record<number, any> = {
     0: 'warning',
     1: 'success',
-    2: 'danger'
+    2: 'danger',
+    4: 'info'
   }
   return map[status] || 'info'
 }
 
+const getReviewTimelineType = (action: string) => {
+  const map: Record<string, string> = {
+    'approved': 'success',
+    'rejected': 'danger',
+    'revoked': 'info'
+  }
+  return map[action] || 'info'
+}
+
+const getReviewColor = (action: string) => {
+  const map: Record<string, string> = {
+    'approved': '#67C23A',
+    'rejected': '#F56C6C',
+    'revoked': '#909399'
+  }
+  return map[action] || '#909399'
+}
+
+const getReviewTagType = (action: string) => {
+  const map: Record<string, any> = {
+    'approved': 'success',
+    'rejected': 'danger',
+    'revoked': 'info'
+  }
+  return map[action] || 'info'
+}
+
+const getActionText = (action: string) => {
+  const map: Record<string, string> = {
+    'approved': '审核通过',
+    'rejected': '审核驳回',
+    'revoked': '撤销申请'
+  }
+  return map[action] || '未知操作'
+}
+
+// ==================== 生命周期 ====================
 onMounted(() => {
   loadData()
 })

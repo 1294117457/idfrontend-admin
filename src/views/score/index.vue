@@ -4,6 +4,7 @@
       <div class="flex items-center">
         <h4 class="text-[20px] font-bold text-gray-800">分数审核</h4>
       </div>
+      
       <!-- 搜索区域 -->
       <el-row justify="space-between" align="bottom" class="filter mb-4">
         <el-row align="bottom" :gutter="20" style="width: 85%">
@@ -56,9 +57,8 @@
           </template>
         </el-table-column>
 
-        <!-- ✅ 使用 applyScore -->
         <el-table-column prop="applyScore" label="申请得分" width="100" align="center" />
-        <el-table-column prop="submitTime" label="提交时间" width="160" align="center">
+        <el-table-column prop="submitTime" label="提交时间" min-width="160" align="center">
           <template #default="{ row }">
             {{ formatDateTime(row.submitTime) }}
           </template>
@@ -118,21 +118,27 @@
           </el-descriptions-item>
         </el-descriptions>
 
-        <!-- ✅ 使用 FileUtil 组件预览证明文件 -->
-        <div v-if="selectedRecord.proofFiles && parseProofFiles(selectedRecord.proofFiles).length > 0" class="mt-4">
+        <!-- ✅ 使用新的 FileUtil 组件预览证明文件 -->
+        <div v-if="detailProofFiles.length > 0" class="mt-4">
           <el-divider content-position="left">证明文件</el-divider>
           <FileUtil
-            v-model="previewFileList"
+            v-model="detailProofFiles"
             :show-upload-button="false"
-            :show-file-list="true"
             :show-preview-button="true"
+            :show-download-button="true"
             :show-delete-button="false"
-            :show-download-in-dialog="true"
             :disabled="true"
-            :icon-size="20"
-            upload-text=""
-            :show-tip="false"
-            :get-file-url="handleGetFileUrl"
+          />
+        </div>
+        
+        <!-- ✅ 兼容旧数据提示 -->
+        <div v-else-if="selectedRecord.proofFiles && hasOldFormatFiles(selectedRecord.proofFiles)" class="mt-4">
+          <el-divider content-position="left">证明文件</el-divider>
+          <el-alert 
+            type="warning" 
+            :closable="false"
+            title="旧数据格式，暂不支持在线预览"
+            description="此申请使用旧的文件存储格式，如需查看请联系管理员"
           />
         </div>
 
@@ -189,28 +195,67 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import type { UploadUserFile } from 'element-plus'
 import { 
   approveRecord, 
   rejectRecord,
   getPendingRecordsPaged,
-  getFileUrl,
-  type AuditRecord
-} from '@/api/components/apiExamine'
+  type AuditRecord,
+  type ProofFileItem
+} from '@/api/components/apiScore'
 import FileUtil from '@/components/fileUtil.vue'
 
-// ✅ 文件预览列表
-const previewFileList = ref<UploadUserFile[]>([])
+// ==================== 搜索相关 ====================
+const searchStudentId = ref('')
+const searchStudentName = ref('')
+const searchMajor = ref('')
 
-// ✅ 获取文件URL
-const handleGetFileUrl = async (fileUrl: string, type: number) => {
+// ==================== 分页相关 ====================
+const currentPage = ref(1)
+const pageSize = ref(10)
+const totalItems = ref(0)
+const loading = ref(false)
+
+// ==================== 数据 ====================
+const pendingRecords = ref<AuditRecord[]>([])
+
+// ==================== 审核弹窗 ====================
+const showDialog = ref(false)
+const selectedRecord = ref<AuditRecord | null>(null)
+const auditComment = ref('')
+
+// ✅ 详情弹窗中的证明文件列表（新格式：[{fileId, fileName}]）
+const detailProofFiles = ref<ProofFileItem[]>([])
+
+// ==================== ✅ 解析证明文件（支持新旧格式） ====================
+const parseProofFiles = (json: string): ProofFileItem[] => {
+  if (!json) return []
   try {
-    const response = await getFileUrl(fileUrl, type as 0 | 1)
-    console.log('✅ 获取文件URL响应:', response)
-    return response
-  } catch (error) {
-    console.error('❌ 获取文件链接失败:', error)
-    throw error
+    const files = JSON.parse(json)
+    if (!Array.isArray(files)) return []
+    
+    // ✅ 检查是否为新格式 [{fileId, fileName}]
+    if (files.length > 0 && typeof files[0] === 'object' && files[0].fileId !== undefined) {
+      return files as ProofFileItem[]
+    }
+    
+    // ✅ 旧格式（字符串数组）返回空，由 hasOldFormatFiles 处理提示
+    return []
+  } catch {
+    return []
+  }
+}
+
+// ✅ 检查是否有旧格式文件
+const hasOldFormatFiles = (json: string): boolean => {
+  if (!json) return false
+  try {
+    const files = JSON.parse(json)
+    if (!Array.isArray(files) || files.length === 0) return false
+    
+    // 如果第一个元素是字符串，说明是旧格式
+    return typeof files[0] === 'string'
+  } catch {
+    return false
   }
 }
 
@@ -219,48 +264,13 @@ const handleViewDetail = (row: AuditRecord) => {
   selectedRecord.value = { ...row }
   auditComment.value = ''
   
-  // ✅ 将证明文件转换为 UploadUserFile 格式
-  const files = parseProofFiles(row.proofFiles || '')
-  previewFileList.value = files.map((url: string, index: number) => ({
-    name: `证明文件${index + 1}.${getFileExtFromUrl(url)}`,
-    url: url,
-    uid: Date.now() + index,
-    status: 'success' as const
-  }))
+  // ✅ 解析证明文件为新格式
+  detailProofFiles.value = parseProofFiles(row.proofFiles || '')
   
   showDialog.value = true
 }
 
-// ✅ 从 URL 中提取文件扩展名
-const getFileExtFromUrl = (url: string): string => {
-  try {
-    const parts = url.split('.')
-    return parts[parts.length - 1] || 'file'
-  } catch {
-    return 'file'
-  }
-}
-
-// 搜索相关
-const searchStudentId = ref('')
-const searchStudentName = ref('')
-const searchMajor = ref('')
-
-// 分页相关
-const currentPage = ref(1)
-const pageSize = ref(10)
-const totalItems = ref(0)
-const loading = ref(false)
-
-// 数据
-const pendingRecords = ref<AuditRecord[]>([])
-
-// 审核弹窗
-const showDialog = ref(false)
-const selectedRecord = ref<AuditRecord | null>(null)
-const auditComment = ref('')
-
-// ✅ 修复 loadData 函数
+// ==================== 数据加载 ====================
 const loadData = async () => {
   loading.value = true
   try {
@@ -310,6 +320,7 @@ const handleSizeChange = (size: number) => {
   loadData()
 }
 
+// ==================== 审核操作 ====================
 const handleApprove = async () => {
   if (!selectedRecord.value) return
   
@@ -359,7 +370,7 @@ const handleReject = async () => {
   }
 }
 
-// ✅ 格式化规则值
+// ==================== 辅助函数 ====================
 const formatRuleValues = (json: string | undefined) => {
   if (!json) return '-'
   try {
@@ -372,18 +383,6 @@ const formatRuleValues = (json: string | undefined) => {
   }
 }
 
-// ✅ 解析证明文件
-const parseProofFiles = (json: string): string[] => {
-  if (!json) return []
-  try {
-    const files = JSON.parse(json)
-    return Array.isArray(files) ? files : []
-  } catch {
-    return []
-  }
-}
-
-// ✅ 解析审核记录
 const parseReviewRecords = (json: string | undefined) => {
   if (!json) return []
   try {
@@ -394,7 +393,6 @@ const parseReviewRecords = (json: string | undefined) => {
   }
 }
 
-// ✅ 格式化日期时间
 const formatDateTime = (datetime: string | undefined) => {
   if (!datetime) return '-'
   try {
@@ -411,6 +409,7 @@ const formatDateTime = (datetime: string | undefined) => {
   }
 }
 
+// ==================== 生命周期 ====================
 onMounted(() => {
   loadData()
 })
