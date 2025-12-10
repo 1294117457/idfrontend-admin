@@ -113,7 +113,15 @@
         <el-table-column label="操作" width="300" align="center" fixed="right">
           <template #default="{ row }">
             <el-space size="small">
-              <el-button type="primary" size="small" @click="handlePreview(row)">预览</el-button>
+              <!-- ✅ 只有 PDF 和图片才显示预览按钮 -->
+              <el-button 
+                v-if="isPreviewable(row.fileExtension)" 
+                type="primary" 
+                size="small" 
+                @click="handlePreview(row)"
+              >
+                预览
+              </el-button>
               <el-button type="success" size="small" @click="handleDownload(row)">下载</el-button>
               <el-button type="warning" size="small" @click="handleRename(row)">重命名</el-button>
               <el-button type="danger" size="small" @click="handleDelete(row)">删除</el-button>
@@ -449,6 +457,13 @@ const getFileTypeText = (extension: string): string => {
   return map[extension] || extension.toUpperCase()
 }
 
+// ✅ 判断文件是否可预览（仅 PDF 和图片）
+const isPreviewable = (extension: string): boolean => {
+  if (!extension) return false
+  const ext = extension.toLowerCase()
+  const previewableExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg']
+  return previewableExtensions.includes(ext)
+}
 // ✅ 获取文件类型颜色
 const getFileTypeColor = (extension: string): string => {
   const map: Record<string, string> = {
