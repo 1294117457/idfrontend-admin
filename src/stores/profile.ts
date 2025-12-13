@@ -1,35 +1,10 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { getUserInfo as fetchUserInfo } from '@/api/components/apiProfile'
-
-// 用户完整信息接口 (包含学生信息)
-export interface UserInfo {
-  userId: number
-  username: string
-  email: string
-  phone?: string
-  
-  // 学生信息
-  studentId?: string
-  studentEmail?: string
-  fullName?: string
-  enrollmentYear?: number
-  graduationYear?: number
-  major?: string
-  gpa?: number
-  academicScore?: number
-  specialtyScore?: number
-  comprehensiveScore?: number
-  foreignLanguageLevel?: string
-  disciplinaryViolations?: number
-  failedCourses?: number
-  specialSkillsRemark?: string
-  isConfirmed?: boolean
-}
+import { getUserCompleteInfo, type UserInfoVO } from '@/api/components/apiUser' // ✅ 修改导入
 
 export const useUserStore = defineStore('user', () => {
-  // ✅ 用户完整信息 (包含学生信息)
-  const userInfo = ref<UserInfo | null>(null)
+  // ✅ 使用新的类型
+  const userInfo = ref<UserInfoVO | null>(null)
 
   // 登录状态
   const isLoggedIn = computed(() => !!userInfo.value)
@@ -41,11 +16,11 @@ export const useUserStore = defineStore('user', () => {
   const hasStudentInfo = computed(() => !!userInfo.value?.studentId)
 
   /**
-   * ✅ 从服务器获取用户完整信息 (包含学生信息)
+   * ✅ 使用新接口获取用户完整信息
    */
   const fetchUserData = async (): Promise<boolean> => {
     try {
-      const response = await fetchUserInfo()
+      const response = await getUserCompleteInfo() // ✅ 使用新接口
       if (response.code === 200) {
         userInfo.value = response.data
         console.log('✅ 用户信息获取成功:', response.data)
@@ -62,7 +37,7 @@ export const useUserStore = defineStore('user', () => {
   /**
    * ✅ 更新用户信息 (局部更新)
    */
-  const updateUserInfo = (partialInfo: Partial<UserInfo>) => {
+  const updateUserInfo = (partialInfo: Partial<UserInfoVO>) => {
     if (userInfo.value) {
       userInfo.value = { ...userInfo.value, ...partialInfo }
     }

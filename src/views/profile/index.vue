@@ -150,211 +150,219 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Loading } from '@element-plus/icons-vue'
-import {
-  type UserInfoItem,
-  type StudentItem,
-  type UpdateStudentItem,
-  sendEmailCode,
-  bindStudentInfo,
-  getUserInfo,
-  updateStudentInfo
-} from '@/api/components/apiProfile'
-
-const loading = ref(true)
-const submitting = ref(false)
-const userInfo = ref<UserInfoItem | null>(null)
-const editDialogVisible = ref(false)
-const countdown = ref(0)
-const editCountdown = ref(0)
-
-// 绑定表单
-const bindForm = ref<StudentItem>({
-  email: '',
-  code: '',
-  fullName: '',
-  major: '',
-  enrollmentYear: new Date().getFullYear(),
-  graduationYear: new Date().getFullYear() + 4,
-})
-
-// 编辑表单
-const editForm = ref<UpdateStudentItem>({
-  email: '',
-  code: '',
-  fullName: '',
-  major: '',
-})
-
-// 获取用户信息
-const fetchUserInfo = async () => {
-  loading.value = true
-  try {
-    const response = await getUserInfo()
-    if (response.code === 200) {
-      userInfo.value = response.data
-    } else {
-      // 用户未绑定学生信息
-      userInfo.value = null
+  import { ref, onMounted } from 'vue'
+  import { ElMessage } from 'element-plus'
+  import { Loading } from '@element-plus/icons-vue'
+  
+  // ❌ 删除旧的导入
+  // import {
+  //   type UserInfoItem,
+  //   type StudentItem,
+  //   type UpdateStudentItem,
+  //   sendEmailCode,
+  //   bindStudentInfo,
+  //   getUserInfo,
+  //   updateStudentInfo
+  // } from '@/api/components/apiProfile'
+  
+  // ✅ 使用新的 API
+  import { 
+    getUserCompleteInfo, 
+    type UserInfoVO 
+  } from '@/api/components/apiUser'
+  
+  import {
+    sendStudentEmailCode,
+    bindStudentInfo,
+    updateStudentInfo,
+    type StudentDTO
+  } from '@/api/components/apiStudent'
+  
+  const loading = ref(true)
+  const submitting = ref(false)
+  const userInfo = ref<UserInfoVO | null>(null)  // ✅ 改用新类型
+  const editDialogVisible = ref(false)
+  const countdown = ref(0)
+  const editCountdown = ref(0)
+  
+  // ✅ 绑定表单（使用新的 StudentDTO）
+  const bindForm = ref<StudentDTO>({
+    email: '',
+    code: '',
+    fullName: '',
+    major: '',
+    grade: 1,  // ✅ 改为年级（1-7）
+    graduationYear: new Date().getFullYear() + 4,
+  })
+  
+  // ✅ 编辑表单
+  const editForm = ref<StudentDTO>({
+    email: '',
+    code: '',
+    fullName: '',
+    major: '',
+    grade: 1,
+    graduationYear: new Date().getFullYear() + 4,
+  })
+  
+  // ✅ 获取用户信息（使用新接口）
+  const fetchUserInfo = async () => {
+    loading.value = true
+    try {
+      const response = await getUserCompleteInfo()  // ✅ 使用新接口
+      if (response.code === 200) {
+        userInfo.value = response.data
+      } else {
+        userInfo.value = null
+      }
+    } catch (error: any) {
+      if (error.response?.status === 400 || error.response?.data?.msg?.includes('未绑定')) {
+        userInfo.value = null
+      } else {
+        ElMessage.error('获取用户信息失败')
+      }
+    } finally {
+      loading.value = false
     }
-  } catch (error: any) {
-    if (error.response?.status === 400 || error.response?.data?.msg?.includes('未绑定')) {
-      userInfo.value = null
-    } else {
-      ElMessage.error('获取用户信息失败')
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-// 发送验证码(绑定时)
-const sendCode = async () => {
-  if (!bindForm.value.email) {
-    ElMessage.warning('请输入学生邮箱')
-    return
-  }
-  if (!bindForm.value.email.endsWith('@stu.xmu.edu.cn')) {
-    ElMessage.warning('邮箱必须以@stu.xmu.edu.cn结尾')
-    return
   }
   
-  try {
-    const response = await sendEmailCode(bindForm.value.email)
-    if (response.code === 200) {
-      ElMessage.success('验证码已发送')
-      // 开始倒计时
-      countdown.value = 60
-      const timer = setInterval(() => {
-        countdown.value--
-        if (countdown.value <= 0) {
-          clearInterval(timer)
-        }
-      }, 1000)
+  // ✅ 发送验证码(绑定时)
+  const sendCode = async () => {
+    if (!bindForm.value.email) {
+      ElMessage.warning('请输入学生邮箱')
+      return
     }
-  } catch (error: any) {
-    ElMessage.error(error.response?.data?.msg || '发送验证码失败')
-  }
-}
-
-// 发送验证码(修改时)
-const sendEditCode = async () => {
-  if (!editForm.value.email) {
-    ElMessage.warning('请输入新的学生邮箱')
-    return
-  }
-  if (!editForm.value.email.endsWith('@stu.xmu.edu.cn')) {
-    ElMessage.warning('邮箱必须以@stu.xmu.edu.cn结尾')
-    return
+    if (!bindForm.value.email.endsWith('@stu.xmu.edu.cn')) {
+      ElMessage.warning('邮箱必须以@stu.xmu.edu.cn结尾')
+      return
+    }
+    
+    try {
+      const response = await sendStudentEmailCode(bindForm.value.email)  // ✅ 使用新接口
+      if (response.code === 200) {
+        ElMessage.success('验证码已发送')
+        countdown.value = 60
+        const timer = setInterval(() => {
+          countdown.value--
+          if (countdown.value <= 0) {
+            clearInterval(timer)
+          }
+        }, 1000)
+      }
+    } catch (error: any) {
+      ElMessage.error(error.response?.data?.msg || '发送验证码失败')
+    }
   }
   
-  try {
-    const response = await sendEmailCode(editForm.value.email)
-    if (response.code === 200) {
-      ElMessage.success('验证码已发送')
-      // 开始倒计时
-      editCountdown.value = 60
-      const timer = setInterval(() => {
-        editCountdown.value--
-        if (editCountdown.value <= 0) {
-          clearInterval(timer)
-        }
-      }, 1000)
+  // ✅ 发送验证码(修改时)
+  const sendEditCode = async () => {
+    if (!editForm.value.email) {
+      ElMessage.warning('请输入新的学生邮箱')
+      return
     }
-  } catch (error: any) {
-    ElMessage.error(error.response?.data?.msg || '发送验证码失败')
-  }
-}
-
-// 绑定学生信息
-const bindStudent = async () => {
-  if (!bindForm.value.email || !bindForm.value.code || !bindForm.value.fullName || !bindForm.value.major) {
-    ElMessage.warning('请填写完整信息')
-    return
+    if (!editForm.value.email.endsWith('@stu.xmu.edu.cn')) {
+      ElMessage.warning('邮箱必须以@stu.xmu.edu.cn结尾')
+      return
+    }
+    
+    try {
+      const response = await sendStudentEmailCode(editForm.value.email)  // ✅ 使用新接口
+      if (response.code === 200) {
+        ElMessage.success('验证码已发送')
+        editCountdown.value = 60
+        const timer = setInterval(() => {
+          editCountdown.value--
+          if (editCountdown.value <= 0) {
+            clearInterval(timer)
+          }
+        }, 1000)
+      }
+    } catch (error: any) {
+      ElMessage.error(error.response?.data?.msg || '发送验证码失败')
+    }
   }
   
-  submitting.value = true
-  try {
-    const response = await bindStudentInfo(bindForm.value)
-    if (response.code === 200) {
-      ElMessage.success('学生信息绑定成功')
-      await fetchUserInfo()
+  // ✅ 绑定学生信息
+  const bindStudent = async () => {
+    if (!bindForm.value.email || !bindForm.value.code || !bindForm.value.fullName || !bindForm.value.major) {
+      ElMessage.warning('请填写完整信息')
+      return
     }
-  } catch (error: any) {
-    ElMessage.error(error.response?.data?.msg || '绑定失败')
-  } finally {
-    submitting.value = false
-  }
-}
-
-// 显示编辑弹窗
-const showEditDialog = () => {
-  if (userInfo.value) {
-    editForm.value = {
-      email: userInfo.value.studentEmail,
-      code: '',
-      fullName: userInfo.value.fullName,
-      major: userInfo.value.major,
+    
+    submitting.value = true
+    try {
+      const response = await bindStudentInfo(bindForm.value)  // ✅ 使用新接口
+      if (response.code === 200) {
+        ElMessage.success('学生信息绑定成功')
+        await fetchUserInfo()
+      }
+    } catch (error: any) {
+      ElMessage.error(error.response?.data?.msg || '绑定失败')
+    } finally {
+      submitting.value = false
     }
-  }
-  editDialogVisible.value = true
-}
-
-// 更新学生信息
-const updateStudent = async () => {
-  if (!editForm.value.email || !editForm.value.code || !editForm.value.fullName || !editForm.value.major) {
-    ElMessage.warning('请填写完整信息')
-    return
   }
   
-  submitting.value = true
-  try {
-    const response = await updateStudentInfo(editForm.value)
-    if (response.code === 200) {
-      ElMessage.success('学生信息更新成功')
-      editDialogVisible.value = false
-      await fetchUserInfo()
+  // ✅ 显示编辑弹窗
+  const showEditDialog = () => {
+    if (userInfo.value) {
+      editForm.value = {
+        email: userInfo.value.studentEmail || '',
+        code: '',
+        fullName: userInfo.value.fullName || '',
+        major: userInfo.value.major || '',
+        grade: userInfo.value.grade || 1,
+        graduationYear: userInfo.value.graduationYear || new Date().getFullYear() + 4,
+      }
     }
-  } catch (error: any) {
-    ElMessage.error(error.response?.data?.msg || '更新失败')
-  } finally {
-    submitting.value = false
+    editDialogVisible.value = true
   }
-}
-
-// 获取推荐状态类型
-const getStatusType = (status: string) => {
-  const statusMap: Record<string, any> = {
-    'eligible': 'success',
-    'ineligible': 'danger',
-    'pending': 'warning'
+  
+  // ✅ 更新学生信息
+  const updateStudent = async () => {
+    if (!editForm.value.email || !editForm.value.code || !editForm.value.fullName || !editForm.value.major) {
+      ElMessage.warning('请填写完整信息')
+      return
+    }
+    
+    submitting.value = true
+    try {
+      const response = await updateStudentInfo(editForm.value)  // ✅ 使用新接口
+      if (response.code === 200) {
+        ElMessage.success('学生信息更新成功')
+        editDialogVisible.value = false
+        await fetchUserInfo()
+      }
+    } catch (error: any) {
+      ElMessage.error(error.response?.data?.msg || '更新失败')
+    } finally {
+      submitting.value = false
+    }
   }
-  return statusMap[status] || 'info'
-}
-
-// 获取推荐状态文本
-const getStatusText = (status: string) => {
-  const textMap: Record<string, string> = {
-    'eligible': '符合条件',
-    'ineligible': '不符合条件',
-    'pending': '待审核'
+  
+  // 获取推荐状态类型（保持不变）
+  const getStatusType = (status?: string) => {
+    if (!status) return 'info'
+    const statusMap: Record<string, any> = {
+      'eligible': 'success',
+      'ineligible': 'danger',
+      'pending': 'warning'
+    }
+    return statusMap[status] || 'info'
   }
-  return textMap[status] || status
-}
-
-onMounted(() => {
-  fetchUserInfo()
-})
-</script>
-
-<style scoped>
-.student-info-card {
-  background: linear-gradient(to bottom, #e3f2fd 0%, #ffffff 100%);
-}
-
-.student-info-card :deep(.el-card__body) {
-  background: transparent;
-}
-</style>
+  
+  // 获取推荐状态文本（保持不变）
+  const getStatusText = (status?: string) => {
+    if (!status) return '未设置'
+    const textMap: Record<string, string> = {
+      'eligible': '符合条件',
+      'ineligible': '不符合条件',
+      'pending': '待审核'
+    }
+    return textMap[status] || status
+  }
+  
+  onMounted(() => {
+    fetchUserInfo()
+  })
+  </script>
