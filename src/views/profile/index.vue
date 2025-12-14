@@ -154,16 +154,6 @@
   import { ElMessage } from 'element-plus'
   import { Loading } from '@element-plus/icons-vue'
   
-  // ❌ 删除旧的导入
-  // import {
-  //   type UserInfoItem,
-  //   type StudentItem,
-  //   type UpdateStudentItem,
-  //   sendEmailCode,
-  //   bindStudentInfo,
-  //   getUserInfo,
-  //   updateStudentInfo
-  // } from '@/api/components/apiProfile'
   
   // ✅ 使用新的 API
   import { 
@@ -184,7 +174,13 @@
   const editDialogVisible = ref(false)
   const countdown = ref(0)
   const editCountdown = ref(0)
-  
+  // ✅ 年级选项（1-4）
+  const gradeOptions = [
+    { label: '大一', value: 1 },
+    { label: '大二', value: 2 },
+    { label: '大三', value: 3 },
+    { label: '大四', value: 4 }
+  ]
   // ✅ 绑定表单（使用新的 StudentDTO）
   const bindForm = ref<StudentDTO>({
     email: '',
@@ -194,7 +190,17 @@
     grade: 1,  // ✅ 改为年级（1-7）
     graduationYear: new Date().getFullYear() + 4,
   })
-  
+  // ✅ 年级文本转换
+  const getGradeText = (grade?: number) => {
+    if (!grade) return '-'
+    const gradeMap: Record<number, string> = {
+      1: '大一',
+      2: '大二',
+      3: '大三',
+      4: '大四'
+    }
+    return gradeMap[grade] || `年级${grade}`
+  }
   // ✅ 编辑表单
   const editForm = ref<StudentDTO>({
     email: '',

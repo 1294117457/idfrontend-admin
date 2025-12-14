@@ -1,4 +1,5 @@
 import apiClient from '@/utils/http'
+
 const apiBaseUrl = import.meta.env.VITE_BASE_API
 
 // ========== 通用响应接口 ==========
@@ -38,16 +39,6 @@ export interface PermissionPO {
   status: number
   createdAt?: string
   updatedAt?: string
-}
-
-/**
- * 用户（扩展）
- */
-export interface UserWithRoles {
-  id: number
-  username: string
-  email: string
-  roles?: RolePO[]
 }
 
 /**
@@ -176,43 +167,17 @@ export const createPermission = async (data: PermissionDTO): Promise<ApiResponse
 }
 
 /**
+ * 更新权限
+ */
+export const updatePermission = async (data: PermissionDTO): Promise<ApiResponse<PermissionPO>> => {
+  const response = await apiClient.put(`${apiBaseUrl}/api/system/permission/update`, data)
+  return response.data
+}
+
+/**
  * 删除权限
  */
 export const deletePermission = async (id: number): Promise<ApiResponse<void>> => {
   const response = await apiClient.delete(`${apiBaseUrl}/api/system/permission/${id}`)
-  return response.data
-}
-
-// ==================== 用户角色管理 API ====================
-
-/**
- * 获取用户的角色列表
- */
-export const getUserRoles = async (userId: number): Promise<ApiResponse<RolePO[]>> => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/system/user-role/${userId}/roles`)
-  return response.data
-}
-
-/**
- * 为用户分配角色（覆盖式）
- */
-export const assignRolesToUser = async (data: UserRoleDTO): Promise<ApiResponse<void>> => {
-  const response = await apiClient.post(`${apiBaseUrl}/api/system/user-role/assign`, data)
-  return response.data
-}
-
-/**
- * 为用户添加单个角色
- */
-export const addRoleToUser = async (userId: number, roleId: number): Promise<ApiResponse<void>> => {
-  const response = await apiClient.post(`${apiBaseUrl}/api/system/user-role/${userId}/role/${roleId}`)
-  return response.data
-}
-
-/**
- * 移除用户的某个角色
- */
-export const removeRoleFromUser = async (userId: number, roleId: number): Promise<ApiResponse<void>> => {
-  const response = await apiClient.delete(`${apiBaseUrl}/api/system/user-role/${userId}/role/${roleId}`)
   return response.data
 }

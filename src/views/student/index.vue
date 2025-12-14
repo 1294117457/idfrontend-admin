@@ -31,27 +31,30 @@
     { label: '大一', value: 1 },
     { label: '大二', value: 2 },
     { label: '大三', value: 3 },
-    { label: '大四', value: 4 },
-    { label: '研一', value: 5 },
-    { label: '研二', value: 6 },
-    { label: '研三', value: 7 }
+    { label: '大四', value: 4 }
   ]
   
   // ✅ 根据年级获取标签颜色
   const getGradeTagType = (grade: number | undefined | null): string => {
     if (grade === undefined || grade === null) return 'info'
     
-    if (grade <= 2) return 'success'   // 大一/大二
-    if (grade <= 4) return 'primary'   // 大三/大四
-    if (grade <= 6) return 'warning'   // 研一/研二
-    return 'info'                      // 研三
+    if (grade === 1) return 'success'   // 大一
+    if (grade === 2) return 'primary'   // 大二
+    if (grade === 3) return 'warning'   // 大三
+    if (grade === 4) return 'danger'    // 大四
+    return 'info'
   }
   
   // ✅ 获取年级显示文本
   const getGradeLabel = (grade: number | undefined | null): string => {
     if (grade === undefined || grade === null) return '-'
-    const option = gradeOptions.find(opt => opt.value === grade)
-    return option ? option.label : `年级${grade}`
+    const gradeMap: Record<number, string> = {
+      1: '大一',
+      2: '大二',
+      3: '大三',
+      4: '大四'
+    }
+    return gradeMap[grade] || `年级${grade}`
   }
   
   // 加载数据
@@ -195,17 +198,17 @@
           
           <!-- ✅ 年级筛选 -->
           <el-form-item label="年级">
-            <el-select 
-              v-model="searchGrade" 
-              placeholder="请选择年级" 
-              clearable 
-              style="width: 150px"
+            <el-select
+              v-model="searchGrade"
+              placeholder="选择年级"
+              clearable
+              style="width: 120px"
             >
-              <el-option 
-                v-for="option in gradeOptions" 
-                :key="option.value" 
-                :label="option.label" 
-                :value="option.value" 
+              <el-option
+                v-for="opt in gradeOptions"
+                :key="opt.value"
+                :label="opt.label"
+                :value="opt.value"
               />
             </el-select>
           </el-form-item>
