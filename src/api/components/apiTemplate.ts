@@ -17,6 +17,7 @@ export interface BonusTemplate {
   templateType: 'CONDITION' | 'TRANSFORM'
   scoreType: number
   templateMaxScore: number
+  inputUnit?: string
   description: string
   reviewCount?: number
   rules: ScoringRule[]

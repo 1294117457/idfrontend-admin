@@ -43,9 +43,8 @@
       v-model="dialogVisible" 
       :title="isEdit ? '编辑模板' : '创建模板'" 
       width="1400px"
-      :close-on-click-modal="false"
     >
-      <!-- ✅ 上方: 模板基本信息 -->
+      <!-- 模板基本信息 -->
       <el-card shadow="never" class="mb-4">
         <template #header>
           <span class="font-bold">模板信息</span>
@@ -70,7 +69,7 @@
           <el-row :gutter="20">
             <el-col :span="8">
               <el-form-item label="分类" required>
-                <el-select v-model="formData.scoreType" placeholder="请选择" class="w-full">
+                <el-select v-model="formData.scoreType" class="w-full">
                   <el-option label="学术专长(12分)" :value="0" />
                   <el-option label="综合表现(8分)" :value="1" />
                   <el-option label="学业成绩换算" :value="2" />
@@ -89,13 +88,33 @@
             </el-col>
           </el-row>
 
+          <!-- ✅ 新增: 仅 TRANSFORM 模板显示输入单位 -->
+          <el-row :gutter="20">
+              <el-col :span="24">
+                <el-form-item label="输入单位" :required="formData.templateType === 'TRANSFORM'">
+                  <el-input 
+                    v-model="formData.inputUnit" 
+                    :disabled="formData.templateType === 'CONDITION'"
+                    :placeholder="formData.templateType === 'CONDITION' ? '条件模板默认为分' : '如: GPA、小时、次数'"
+                    class="w-1/3"
+                  />
+                  <span v-if="formData.templateType === 'CONDITION'" class="text-xs text-gray-500 ml-2">
+                    条件模板固定使用"分"作为单位
+                  </span>
+                  <span v-else class="text-xs text-gray-500 ml-2">
+                    学生提交申请时的输入单位
+                  </span>
+                </el-form-item>
+              </el-col>
+            </el-row>
+
           <el-form-item label="说明">
             <el-input v-model="formData.description" type="textarea" :rows="2" />
           </el-form-item>
         </el-form>
       </el-card>
 
-      <!-- ✅ 下方: 规则配置 (表格形式) -->
+      <!-- 规则配置 -->
       <el-card shadow="never">
         <template #header>
           <div class="flex justify-between items-center">
@@ -104,7 +123,6 @@
           </div>
         </template>
 
-        <!-- ✅ 规则表格 -->
         <el-table :data="formData.rules" border class="rule-table">
           <el-table-column label="序号" width="60" align="center">
             <template #default="{ $index }">
@@ -112,7 +130,6 @@
             </template>
           </el-table-column>
 
-          <!-- ✅ 绑定属性 (树形级联选择器) -->
           <el-table-column label="绑定属性" min-width="350">
             <template #default="{ row }">
               <el-cascader
@@ -126,25 +143,8 @@
                 collapse-tags-tooltip
                 class="w-full"
                 size="small"
-              >
-                <template #default="{ node, data }">
-                  <div class="cascader-node">
-                    <span :class="{ 'font-bold': !data.isChild }">
-                      {{ data.label }}
-                    </span>
-                    <el-tag 
-                      v-if="data.attributeType" 
-                      :type="data.attributeType === 'CONDITION' ? 'success' : 'warning'" 
-                      size="small"
-                      class="ml-2"
-                    >
-                      {{ data.attributeType === 'CONDITION' ? '条件' : '换算' }}
-                    </el-tag>
-                  </div>
-                </template>
-              </el-cascader>
+              />
               
-              <!-- 已选属性预览 -->
               <div v-if="row.attributeIds && row.attributeIds.length > 0" class="mt-1">
                 <el-tag
                   v-for="attrId in row.attributeIds"
@@ -160,7 +160,6 @@
             </template>
           </el-table-column>
 
-          <!-- ✅ 规则分数 (仅条件模板) -->
           <el-table-column 
             v-if="formData.templateType === 'CONDITION'" 
             label="规则分数" 
@@ -179,7 +178,6 @@
             </template>
           </el-table-column>
 
-          <!-- ✅ 优先级 -->
           <el-table-column label="优先级" width="100" align="center">
             <template #default="{ row }">
               <el-input-number
@@ -191,18 +189,17 @@
             </template>
           </el-table-column>
 
-          <!-- ✅ 操作 -->
           <el-table-column label="操作" width="80" align="center" fixed="right">
             <template #default="{ $index }">
               <el-button
                 type="danger"
                 size="small"
                 @click="removeRule($index)"
-              >删除</el-button>
+                icon="Delete"
+              />
             </template>
           </el-table-column>
         </el-table>
-
       </el-card>
 
       <template #footer>
@@ -222,6 +219,13 @@
         </el-descriptions-item>
         <el-descriptions-item label="分类">{{ getScoreTypeText(detailData.scoreType) }}</el-descriptions-item>
         <el-descriptions-item label="总分">{{ detailData.templateMaxScore }}</el-descriptions-item>
+        <!-- ✅ 新增: 显示输入单位 -->
+        <el-descriptions-item 
+          v-if="detailData.templateType === 'TRANSFORM'" 
+          label="输入单位"
+        >
+          <el-tag size="small" type="info">{{ detailData.inputUnit || '-' }}</el-tag>
+        </el-descriptions-item>
         <el-descriptions-item label="审核次数">{{ detailData.reviewCount }}</el-descriptions-item>
         <el-descriptions-item label="说明" :span="2">{{ detailData.description }}</el-descriptions-item>
       </el-descriptions>
@@ -236,14 +240,12 @@
           <span class="text-gray-500">(优先级: {{ rule.priority }})</span>
         </div>
 
-        <!-- ✅ 显示绑定的属性(包含单位) -->
         <div v-if="rule.attributes && rule.attributes.length > 0" class="mt-2">
           <div class="text-sm text-gray-600 mb-1">绑定属性:</div>
           <el-table :data="rule.attributes" border size="small">
             <el-table-column prop="attributeCode" label="属性代码" width="150" />
             <el-table-column prop="attributeValue" label="属性值/公式" />
             
-            <!-- ✅ 换算模板显示范围和单位 -->
             <el-table-column v-if="detailData.templateType === 'TRANSFORM'" label="范围" width="150">
               <template #default="{ row }">
                 <span v-if="row.inputMin !== undefined && row.inputMax !== undefined">
@@ -252,43 +254,33 @@
               </template>
             </el-table-column>
 
-            <!-- ✅ 显示单位 -->
-            <el-table-column v-if="detailData.templateType === 'TRANSFORM'" label="单位" width="100">
-              <template #default="{ row }">
-                <el-tag v-if="row.inputUnit" size="small" type="info">
-                  {{ row.inputUnit }}
-                </el-tag>
-              </template>
-            </el-table-column>
-
+            <!-- ✅ 删除单位列 -->
+            
             <el-table-column prop="description" label="说明" show-overflow-tooltip />
           </el-table>
         </div>
-        <span v-else class="text-gray-400">无绑定属性</span>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Delete } from '@element-plus/icons-vue'
-import {
-  getTemplateList,
-  createTemplate,
-  updateTemplate,
-  deleteTemplate,
-  getTemplateDetail,
-  type BonusTemplate,
-  type ScoringRule
-} from '@/api/components/apiTemplate'
-import {
-  type RuleAttribute,
-  type AttributeTreeNode,
-  getAttributesByType
-} from '@/api/components/apiAttribute'
-
+  import { ref, reactive, onMounted, computed } from 'vue'
+  import { ElMessage, ElMessageBox } from 'element-plus'
+  import { Delete } from '@element-plus/icons-vue'
+  import {
+    getTemplateList,
+    createTemplate,
+    updateTemplate,
+    deleteTemplate,
+    getTemplateDetail,
+    type BonusTemplate
+  } from '@/api/components/apiTemplate'
+  import {
+    type RuleAttribute,
+    getAttributesByType
+  } from '@/api/components/apiAttribute'
+  
 const templateList = ref([])
 const dialogVisible = ref(false)
 const detailDialogVisible = ref(false)
@@ -301,6 +293,7 @@ const formData = reactive<BonusTemplate>({
   templateType: 'CONDITION',
   scoreType: 0,
   templateMaxScore: 0,
+  inputUnit: '',  // ✅ 新增
   description: '',
   reviewCount: 1,
   rules: []
@@ -415,6 +408,14 @@ const handleTemplateTypeChange = () => {
     rule.attributeIds = []
     rule.selectedAttributes = []
   })
+  
+  // ✅ 根据模板类型设置默认单位
+  if (formData.templateType === 'CONDITION') {
+    formData.inputUnit = '分'  // CONDITION 模板默认为 '分'
+  } else {
+    formData.inputUnit = ''    // TRANSFORM 模板清空,等待用户输入
+  }
+  
   loadAttributes()
 }
 
@@ -437,6 +438,11 @@ const removeRule = (index: number) => {
 const handleSubmit = async () => {
   if (!formData.templateName || formData.templateMaxScore <= 0) {
     ElMessage.warning('请填写完整的模板信息')
+    return
+  }
+  // ✅ TRANSFORM 模板必须填写单位
+  if (formData.templateType === 'TRANSFORM' && !formData.inputUnit) {
+    ElMessage.warning('换算模板必须设置输入单位')
     return
   }
 
@@ -499,6 +505,7 @@ const openEditDialog = async (id: number) => {
       templateType: data.templateType,
       scoreType: data.scoreType,
       templateMaxScore: data.templateMaxScore,
+      inputUnit: data.inputUnit || '',  // ✅ 添加单位
       description: data.description,
       reviewCount: data.reviewCount,
       rules: data.rules.map((r: any) => ({
@@ -523,6 +530,7 @@ const loadTemplates = async () => {
   }
 }
 
+// ✅ 创建模板时初始化单位
 const openDialog = async () => {
   isEdit.value = false
   editingId.value = 0
@@ -531,6 +539,7 @@ const openDialog = async () => {
     templateType: 'CONDITION',
     scoreType: 0,
     templateMaxScore: 0,
+    inputUnit: '分',  // ✅ 默认为 '分'
     description: '',
     reviewCount: 1,
     rules: []
@@ -538,6 +547,7 @@ const openDialog = async () => {
   await loadAttributes()
   dialogVisible.value = true
 }
+
 // ✅ 格式化范围显示
 const formatRange = (attr: any) => {
   if (!attr.inputMin || !attr.inputMax) return '-'

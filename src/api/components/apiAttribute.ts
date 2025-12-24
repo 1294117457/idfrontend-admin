@@ -13,7 +13,6 @@ export interface RuleAttribute {
   inputMax?: number
   inputMin?: number
   inputInterval?: 'OPEN' | 'CLOSED' | 'LEFT_OPEN' | 'RIGHT_OPEN'
-  inputUnit?: string  // ✅ 新增: 输入单位
   
   displayOrder?: number
   description?: string
@@ -34,7 +33,6 @@ export interface AttributeItem {
   inputMax?: number | null
   inputMin?: number | null
   inputInterval?: string
-  inputUnit?: string  // ✅ 新增
   
   displayOrder?: number
   description?: string
@@ -56,7 +54,6 @@ export interface AttributeTreeNode {
   inputMax?: number
   inputMin?: number
   inputInterval?: string
-  inputUnit?: string  // ✅ 新增
   
   description?: string
 }

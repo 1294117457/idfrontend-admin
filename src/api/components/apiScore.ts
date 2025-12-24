@@ -15,6 +15,22 @@ export interface ProofFileItem {
   fileName: string
 }
 
+/** ✅ 证明材料接口 */
+export interface ProofItem {
+  id: number
+  applicationId: number
+  proofFileId: number
+  fileName?: string
+  proofValue: number
+  reviewCount: number
+  approvedCount: number
+  status: number  // 0-待审核, 1-已通过, 2-已驳回
+  reviewerIds: string
+  reviewRecords: string
+  remark?: string
+  createdAt: string
+}
+
 /** 撤销申请请求参数 */
 export interface RevokeRequest {
   recordId: number
@@ -39,8 +55,11 @@ export interface AuditRecord {
   major: string
   enrollmentYear: number
   templateName: string
+  templateType?: string  // ✅ 新增: CONDITION/TRANSFORM
   scoreType: number
   applyScore: number
+  applyInput?: number    // ✅ 新增: TRANSFORM 模板的输入值
+  proofsInput?: number   // ✅ 新增: 已通过证明材料的输入值
   status: number
   statusText: string
   submitTime: string
@@ -74,7 +93,43 @@ export interface ApiResponse<T = any> {
   data: T
 }
 
-// ========== ✅ 文件相关 API ==========
+// ========== ✅ 证明材料相关 API (新增) ==========
+
+/**
+ * ✅ 根据申请ID获取所有证明材料
+ */
+export const getApplicationProofs = async (applicationId: number): Promise<ApiResponse<{ proofs: ProofItem[] }>> => {
+  const response = await apiClient.get<ApiResponse<{ proofs: ProofItem[] }>>(
+    `${apiBaseUrl}/api/student-bonus/application/${applicationId}/proofs`
+  )
+  return response.data
+}
+
+/**
+ * ✅ 审核证明材料 - 通过
+ */
+export const approveProof = async (proofId: number, comment?: string): Promise<ApiResponse<null>> => {
+  const response = await apiClient.post<ApiResponse<null>>(
+    `${apiBaseUrl}/api/student-bonus/proof/${proofId}/approve`,
+    null,
+    { params: { comment: comment || '' } }
+  )
+  return response.data
+}
+
+/**
+ * ✅ 审核证明材料 - 驳回
+ */
+export const rejectProof = async (proofId: number, comment?: string): Promise<ApiResponse<null>> => {
+  const response = await apiClient.post<ApiResponse<null>>(
+    `${apiBaseUrl}/api/student-bonus/proof/${proofId}/reject`,
+    null,
+    { params: { comment: comment || '' } }
+  )
+  return response.data
+}
+
+// ========== 文件相关 API ==========
 
 /**
  * ✅ 上传证明文件（教师端也可能需要）
