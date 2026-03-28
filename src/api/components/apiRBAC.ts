@@ -1,7 +1,5 @@
 import apiClient from '@/utils/http'
 
-const apiBaseUrl = import.meta.env.VITE_BASE_API
-
 // ========== 通用响应接口 ==========
 export interface ApiResponse<T = any> {
   code: number
@@ -88,7 +86,7 @@ export interface RolePermissionDTO {
  * 获取所有角色列表
  */
 export const getRoleList = async (): Promise<ApiResponse<RolePO[]>> => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/system/role/list`)
+  const response = await apiClient.get('/api/system/role/list')
   return response.data
 }
 
@@ -96,7 +94,7 @@ export const getRoleList = async (): Promise<ApiResponse<RolePO[]>> => {
  * 获取角色详情
  */
 export const getRoleById = async (id: number): Promise<ApiResponse<RolePO>> => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/system/role/${id}`)
+  const response = await apiClient.get(`/api/system/role/${id}`)
   return response.data
 }
 
@@ -104,7 +102,7 @@ export const getRoleById = async (id: number): Promise<ApiResponse<RolePO>> => {
  * 创建角色
  */
 export const createRole = async (data: RoleDTO): Promise<ApiResponse<RolePO>> => {
-  const response = await apiClient.post(`${apiBaseUrl}/api/system/role/create`, data)
+  const response = await apiClient.post('/api/system/role/create', data)
   return response.data
 }
 
@@ -112,7 +110,7 @@ export const createRole = async (data: RoleDTO): Promise<ApiResponse<RolePO>> =>
  * 更新角色
  */
 export const updateRole = async (data: RoleDTO): Promise<ApiResponse<void>> => {
-  const response = await apiClient.put(`${apiBaseUrl}/api/system/role/update`, data)
+  const response = await apiClient.put('/api/system/role/update', data)
   return response.data
 }
 
@@ -120,7 +118,7 @@ export const updateRole = async (data: RoleDTO): Promise<ApiResponse<void>> => {
  * 删除角色
  */
 export const deleteRole = async (id: number): Promise<ApiResponse<void>> => {
-  const response = await apiClient.delete(`${apiBaseUrl}/api/system/role/${id}`)
+  const response = await apiClient.delete(`/api/system/role/${id}`)
   return response.data
 }
 
@@ -128,7 +126,7 @@ export const deleteRole = async (id: number): Promise<ApiResponse<void>> => {
  * 获取角色的权限列表
  */
 export const getRolePermissions = async (roleId: number): Promise<ApiResponse<PermissionPO[]>> => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/system/role/${roleId}/permissions`)
+  const response = await apiClient.get(`/api/system/role/${roleId}/permissions`)
   return response.data
 }
 
@@ -136,7 +134,7 @@ export const getRolePermissions = async (roleId: number): Promise<ApiResponse<Pe
  * 为角色分配权限
  */
 export const assignPermissionsToRole = async (data: RolePermissionDTO): Promise<ApiResponse<void>> => {
-  const response = await apiClient.post(`${apiBaseUrl}/api/system/role/assignPermissions`, data)
+  const response = await apiClient.post('/api/system/role/assignPermissions', data)
   return response.data
 }
 
@@ -146,7 +144,7 @@ export const assignPermissionsToRole = async (data: RolePermissionDTO): Promise<
  * 获取所有权限列表
  */
 export const getPermissionList = async (): Promise<ApiResponse<PermissionPO[]>> => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/system/permission/list`)
+  const response = await apiClient.get('/api/system/permission/list')
   return response.data
 }
 
@@ -154,7 +152,7 @@ export const getPermissionList = async (): Promise<ApiResponse<PermissionPO[]>> 
  * 按模块获取权限
  */
 export const getPermissionsByModule = async (module: string): Promise<ApiResponse<PermissionPO[]>> => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/system/permission/module/${module}`)
+  const response = await apiClient.get(`/api/system/permission/module/${module}`)
   return response.data
 }
 
@@ -162,7 +160,7 @@ export const getPermissionsByModule = async (module: string): Promise<ApiRespons
  * 创建权限
  */
 export const createPermission = async (data: PermissionDTO): Promise<ApiResponse<PermissionPO>> => {
-  const response = await apiClient.post(`${apiBaseUrl}/api/system/permission/create`, data)
+  const response = await apiClient.post('/api/system/permission/create', data)
   return response.data
 }
 
@@ -170,7 +168,7 @@ export const createPermission = async (data: PermissionDTO): Promise<ApiResponse
  * 更新权限
  */
 export const updatePermission = async (data: PermissionDTO): Promise<ApiResponse<PermissionPO>> => {
-  const response = await apiClient.put(`${apiBaseUrl}/api/system/permission/update`, data)
+  const response = await apiClient.put('/api/system/permission/update', data)
   return response.data
 }
 
@@ -178,6 +176,6 @@ export const updatePermission = async (data: PermissionDTO): Promise<ApiResponse
  * 删除权限
  */
 export const deletePermission = async (id: number): Promise<ApiResponse<void>> => {
-  const response = await apiClient.delete(`${apiBaseUrl}/api/system/permission/${id}`)
+  const response = await apiClient.delete(`/api/system/permission/${id}`)
   return response.data
 }

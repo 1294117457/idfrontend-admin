@@ -58,15 +58,23 @@
           </template>
         </el-table-column>
         
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="270" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" size="small" @click="handleManageRoles(row)">
               角色管理
             </el-button>
+            <el-button
+              :type="row.status === 'active' ? 'warning' : 'success'"
+              size="small"
+              @click="handleToggleStatus(row)"
+              :disabled="isSuperAdmin(row)"
+            >
+              {{ row.status === 'active' ? '禁用' : '启用' }}
+            </el-button>
             <!-- ✅ 删除按钮 -->
-            <el-button 
-              type="danger" 
-              size="small" 
+            <el-button
+              type="danger"
+              size="small"
               @click="handleDelete(row)"
               :disabled="isSuperAdmin(row)"
             >
@@ -132,14 +140,33 @@
       </template>
     </el-dialog>
 
-    <!-- ✅ 角色管理弹窗（保持不变）-->
+    <!-- ✅ 角色管理弹窗 -->
     <el-dialog
       v-model="roleDialogVisible"
       title="角色管理"
-      width="600px"
+      width="500px"
       :close-on-click-modal="false"
     >
-      <!-- ... 角色管理内容 ... -->
+      <div v-if="currentUser">
+        <p class="mb-4">用户: <strong>{{ currentUser.username }}</strong></p>
+        <div v-loading="loadingRoles">
+          <el-checkbox-group v-model="selectedRoleIds">
+            <el-checkbox
+              v-for="role in allRoles"
+              :key="role.id"
+              :label="role.id"
+              :disabled="role.roleCode === 'super_admin'"
+            >
+              {{ role.roleName }}
+              <span v-if="role.description" class="text-gray-500 text-xs ml-1">({{ role.description }})</span>
+            </el-checkbox>
+          </el-checkbox-group>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="roleDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="confirmAssignRoles">确定</el-button>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -148,10 +175,11 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getRoleList, type RolePO } from '@/api/components/apiRBAC'
-import { 
-  getUserListForAdmin, 
+import {
+  getUserListForAdmin,
   getUserRoles,
   assignUserRoles,
+  updateUserStatus,
   createUser,
   deleteUser,
   type UserManageVO,
@@ -298,6 +326,35 @@ const confirmAdd = async () => {
     ElMessage.error(error.response?.data?.msg || '创建失败')
   } finally {
     saving.value = false
+  }
+}
+
+// ==================== ✅ 禁用/启用用户 ====================
+const handleToggleStatus = async (user: UserManageVO) => {
+  const newStatus = user.status === 'active' ? 'inactive' : 'active'
+  const action = newStatus === 'inactive' ? '禁用' : '启用'
+  try {
+    await ElMessageBox.confirm(
+      `确定要${action}用户 "${user.username}" 吗？`,
+      `确认${action}`,
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    const response = await updateUserStatus(user.userId, newStatus)
+    if (response.code === 200) {
+      ElMessage.success(`${action}成功`)
+      await loadUsers()
+    } else {
+      ElMessage.error(response.msg || `${action}失败`)
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      console.error(`❌ ${action}用户失败:`, error)
+      ElMessage.error(error.response?.data?.msg || `${action}失败`)
+    }
   }
 }
 

@@ -14,9 +14,16 @@ const router = createRouter({
   routes,
 })
 
-// ✅ 全局前置守卫 - 统一处理用户信息获取
-router.beforeEach(async (to, from, next) => {
-  next();
+const PUBLIC_ROUTES = ['/login', '/register', '/forgot', '/']
+
+// ✅ 全局前置守卫 - 未登录跳转到登录页
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('accessToken')
+  if (!token && !PUBLIC_ROUTES.includes(to.path)) {
+    next('/login')
+  } else {
+    next()
+  }
 })
 
 export default router

@@ -178,6 +178,19 @@ export const assignUserRoles = async (userId: number, roleIds: number[]) => {
     msg: string
     data: null
   }>(`/api/user/${userId}/roles`, { roleIds })
-  
+
+  return response.data
+}
+
+/**
+ * ✅ 禁用或启用用户
+ */
+export const updateUserStatus = async (userId: number, status: 'active' | 'inactive') => {
+  const response = await apiClient.put<{
+    code: number
+    msg: string
+    data: null
+  }>(`/api/user/admin/${userId}/status`, { status })
+
   return response.data
 }
