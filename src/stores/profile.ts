@@ -13,7 +13,7 @@ export const useUserStore = defineStore('user', () => {
   const hasToken = computed(() => !!localStorage.getItem('accessToken'))
 
   // 是否已绑定学生信息
-  const hasStudentInfo = computed(() => !!userInfo.value?.studentId)
+  const hasStudentInfo = computed(() => !!userInfo.value?.fullName)
 
   /**
    * ✅ 使用新接口获取用户完整信息

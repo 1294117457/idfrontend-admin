@@ -7,7 +7,6 @@
   import * as XLSX from 'xlsx'
   
   // 搜索相关
-  const searchStudentId = ref('')
   const searchFullName = ref('')
   const searchMajor = ref('')
   const searchGrade = ref<number | undefined>(undefined)  // ✅ 年级筛选
@@ -62,7 +61,6 @@
     loading.value = true
     try {
       const params: StudentQueryParams = {
-        studentId: searchStudentId.value || undefined,
         fullName: searchFullName.value || undefined,
         major: searchMajor.value || undefined,
         grade: searchGrade.value,
@@ -94,7 +92,6 @@
   
   // 重置
   const handleReset = () => {
-    searchStudentId.value = ''
     searchFullName.value = ''
     searchMajor.value = ''
     searchGrade.value = undefined
@@ -118,7 +115,6 @@
     exporting.value = true
     try {
       const data = students.value.map(s => ({
-        '学号': s.studentId,
         '姓名': s.fullName,
         '专业': s.major,
         '年级': getGradeLabel(s.grade),
@@ -169,20 +165,11 @@
       <!-- 搜索表单 -->
       <el-card>
         <el-form :inline="true" class="search-form">
-          <el-form-item label="学号">
-            <el-input 
-              v-model="searchStudentId" 
-              placeholder="请输入学号" 
-              clearable 
-              style="width: 200px"
-            />
-          </el-form-item>
-          
           <el-form-item label="姓名">
-            <el-input 
-              v-model="searchFullName" 
-              placeholder="请输入姓名" 
-              clearable 
+            <el-input
+              v-model="searchFullName"
+              placeholder="请输入姓名"
+              clearable
               style="width: 200px"
             />
           </el-form-item>
@@ -231,7 +218,6 @@
       <!-- 数据表格 -->
       <el-card>
         <el-table :data="students" v-loading="loading" border stripe>
-          <el-table-column prop="studentId" label="学号" width="120" />
           <el-table-column prop="fullName" label="姓名" width="100" />
           <el-table-column prop="major" label="专业" width="150" />
           
@@ -310,9 +296,6 @@
       >
         <div v-if="selectedStudent">
           <el-descriptions :column="2" border>
-            <el-descriptions-item label="学号">
-              {{ selectedStudent.studentId }}
-            </el-descriptions-item>
             <el-descriptions-item label="姓名">
               {{ selectedStudent.fullName }}
             </el-descriptions-item>
@@ -327,10 +310,7 @@
             <el-descriptions-item label="毕业年份">
               {{ selectedStudent.graduationYear }}
             </el-descriptions-item>
-            <el-descriptions-item label="学生邮箱">
-              {{ selectedStudent.studentEmail }}
-            </el-descriptions-item>
-            
+
             <el-descriptions-item label="GPA">
               {{ selectedStudent.gpa?.toFixed(2) || '-' }}
             </el-descriptions-item>

@@ -11,11 +11,7 @@
         <el-form-item label="邮箱">
           <el-input v-model="queryForm.email" placeholder="请输入邮箱" clearable />
         </el-form-item>
-        
-        <el-form-item label="学号">
-          <el-input v-model="queryForm.studentId" placeholder="请输入学号" clearable />
-        </el-form-item>
-        
+
         <el-form-item label="姓名">
           <el-input v-model="queryForm.fullName" placeholder="请输入姓名" clearable />
         </el-form-item>
@@ -40,10 +36,7 @@
         
         <el-table-column label="学生信息" min-width="200">
           <template #default="{ row }">
-            <div v-if="row.studentId">
-              <div class="mb-1">
-                <el-tag size="small" type="info">{{ row.studentId }}</el-tag>
-              </div>
+            <div v-if="row.fullName">
               <div class="text-sm text-gray-600">
                 {{ row.fullName }} - {{ row.major }}
               </div>
@@ -179,7 +172,6 @@ import {
 const queryForm = reactive({
   username: '',
   email: '',
-  studentId: '',
   fullName: ''
 })
 
@@ -226,7 +218,6 @@ const loadUsers = async () => {
     const response = await getUserListForAdmin({
       username: queryForm.username || undefined,
       email: queryForm.email || undefined,
-      studentId: queryForm.studentId || undefined,
       fullName: queryForm.fullName || undefined,
       pageNum: currentPage.value,  // ✅ 必须传递
       pageSize: pageSize.value      // ✅ 必须传递
@@ -274,7 +265,6 @@ const handleSearch = () => {
 const handleReset = () => {
   queryForm.username = ''
   queryForm.email = ''
-  queryForm.studentId = ''
   queryForm.fullName = ''
   currentPage.value = 1
   loadUsers()

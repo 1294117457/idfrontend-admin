@@ -5,7 +5,6 @@ import apiClient from '@/utils/http'
 export interface StudentDTO {
   email?: string
   code?: string
-  studentId?: string
   fullName?: string
   major?: string
   grade?: number
@@ -23,15 +22,12 @@ export interface StudentDTO {
 
 export interface BindStudentVO {
   status: string
-  studentId: string
+  userId: number
 }
 
 export interface StudentDataItem {
   id: number
-  userId: number
   username: string
-  studentId: string
-  studentEmail: string
   fullName: string
   grade: number
   graduationYear: number
@@ -46,7 +42,6 @@ export interface StudentDataItem {
 }
 
 export interface StudentQueryParams {
-  studentId?: string
   fullName?: string
   major?: string
   grade?: number

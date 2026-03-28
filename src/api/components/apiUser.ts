@@ -46,8 +46,6 @@ export interface UserInfoVO {
   phone?: string
 
   // 学生信息(如果已绑定)
-  studentId?: string
-  studentEmail?: string
   fullName?: string
   major?: string
   grade?: number
@@ -108,7 +106,6 @@ export const updateUserBasicInfo = async (data: Partial<UserDTO>) => {
 export interface UserManageQueryParams {
   username?: string
   email?: string
-  studentId?: string
   fullName?: string
   pageNum: number
   pageSize: number
@@ -137,9 +134,8 @@ export interface UserManageVO {
   role: string
   status: string
   lastLoginAt?: string
-  
+
   // 学生信息（可选）
-  studentId?: string
   fullName?: string
   major?: string
   grade?: number
