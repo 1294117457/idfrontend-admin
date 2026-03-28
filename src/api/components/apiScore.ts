@@ -100,17 +100,16 @@ export interface ApiResponse<T = any> {
  */
 export const getApplicationProofs = async (applicationId: number): Promise<ApiResponse<{ proofs: ProofItem[] }>> => {
   const response = await apiClient.get<ApiResponse<{ proofs: ProofItem[] }>>(
-    `${apiBaseUrl}/api/student-bonus/application/${applicationId}/proofs`
+    `${apiBaseUrl}/api/proof/list/${applicationId}`  
   )
   return response.data
 }
-
 /**
  * ✅ 审核证明材料 - 通过
  */
 export const approveProof = async (proofId: number, comment?: string): Promise<ApiResponse<null>> => {
   const response = await apiClient.post<ApiResponse<null>>(
-    `${apiBaseUrl}/api/student-bonus/proof/${proofId}/approve`,
+    `${apiBaseUrl}/api/proof/${proofId}/approve`,
     null,
     { params: { comment: comment || '' } }
   )
@@ -122,7 +121,7 @@ export const approveProof = async (proofId: number, comment?: string): Promise<A
  */
 export const rejectProof = async (proofId: number, comment?: string): Promise<ApiResponse<null>> => {
   const response = await apiClient.post<ApiResponse<null>>(
-    `${apiBaseUrl}/api/student-bonus/proof/${proofId}/reject`,
+    `${apiBaseUrl}/api/proof/${proofId}/reject`,
     null,
     { params: { comment: comment || '' } }
   )
@@ -218,7 +217,7 @@ export const getFileDownloadUrl = async (fileUrl: string): Promise<ApiResponse<s
  */
 export const approveRecord = async (data: AuditRequest): Promise<ApiResponse<null>> => {
   const response = await apiClient.post<ApiResponse<null>>(
-    `${apiBaseUrl}/api/student-bonus/audit/approve`,
+    `${apiBaseUrl}/api/application/audit/approve`,
     data
   )
   return response.data
@@ -229,18 +228,19 @@ export const approveRecord = async (data: AuditRequest): Promise<ApiResponse<nul
  */
 export const rejectRecord = async (data: AuditRequest): Promise<ApiResponse<null>> => {
   const response = await apiClient.post<ApiResponse<null>>(
-    `${apiBaseUrl}/api/student-bonus/audit/reject`,
+    `${apiBaseUrl}/api/application/audit/reject`,
     data
   )
   return response.data
 }
+
 
 /**
  * ✅ 撤销已通过的申请
  */
 export const revokeRecord = async (data: RevokeRequest): Promise<ApiResponse<null>> => {
   const response = await apiClient.post<ApiResponse<null>>(
-    `${apiBaseUrl}/api/student-bonus/audit/revoke`,
+    `${apiBaseUrl}/api/application/audit/revoke`,
     data
   )
   return response.data
@@ -257,7 +257,7 @@ export const getPendingRecordsPaged = async (
   major?: string
 ): Promise<ApiResponse<PageResponse<AuditRecord>>> => {
   const response = await apiClient.get<ApiResponse<PageResponse<AuditRecord>>>(
-    `${apiBaseUrl}/api/student-bonus/audit/pending-paged`,
+    `${apiBaseUrl}/api/application/audit/pending`,
     { 
       params: { 
         page, 
@@ -282,7 +282,7 @@ export const getAuditHistoryPaged = async (
   major?: string
 ): Promise<ApiResponse<PageResponse<AuditRecord>>> => {
   const response = await apiClient.get<ApiResponse<PageResponse<AuditRecord>>>(
-    `${apiBaseUrl}/api/student-bonus/audit/history-paged`,
+    `${apiBaseUrl}/api/application/audit/history`,
     { 
       params: { 
         page, 
