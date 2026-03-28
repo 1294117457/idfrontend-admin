@@ -13,9 +13,8 @@
         </div>
         <el-descriptions :column="2" border>
           <el-descriptions-item label="用户ID">{{ userInfo?.userId }}</el-descriptions-item>
-          <el-descriptions-item label="用户名">{{ userInfo?.username }}</el-descriptions-item>
+          <el-descriptions-item label="邮箱（账号）">{{ userInfo?.username }}</el-descriptions-item>
           <el-descriptions-item label="手机号">{{ userInfo?.phone || '未设置' }}</el-descriptions-item>
-          <el-descriptions-item label="学生邮箱">{{ userInfo?.email || '未设置' }}</el-descriptions-item>
         </el-descriptions>
       </el-card>
 
@@ -25,17 +24,6 @@
           <h4 class="text-[20px] font-bold text-gray-800">绑定学生信息</h4>
         </div>
         <el-form :model="bindForm" label-width="120px">
-          <el-form-item label="学生邮箱">
-            <div class="flex gap-2 w-full">
-              <el-input v-model="bindForm.email" placeholder="请输入学生邮箱(以@stu.xmu.edu.cn结尾)" />
-              <el-button @click="sendCode" :disabled="countdown > 0">
-                {{ countdown > 0 ? `${countdown}秒后重试` : '发送验证码' }}
-              </el-button>
-            </div>
-          </el-form-item>
-          <el-form-item label="验证码">
-            <el-input v-model="bindForm.code" placeholder="请输入验证码" />
-          </el-form-item>
           <el-form-item label="姓名">
             <el-input v-model="bindForm.fullName" placeholder="请输入姓名" />
           </el-form-item>
@@ -85,17 +73,6 @@
     <!-- 修改学生信息弹窗 -->
     <el-dialog v-model="editDialogVisible" title="修改学生信息" width="600px" :close-on-click-modal="false">
       <el-form :model="editForm" label-width="120px">
-        <el-form-item label="学生邮箱">
-          <div class="flex gap-2 w-full">
-            <el-input v-model="editForm.email" placeholder="请输入学生邮箱" :disabled="true" />
-            <el-button @click="sendEditCode" :disabled="editCountdown > 0">
-              {{ editCountdown > 0 ? `${editCountdown}秒后重试` : '发送验证码' }}
-            </el-button>
-          </div>
-        </el-form-item>
-        <el-form-item label="验证码">
-          <el-input v-model="editForm.code" placeholder="请输入验证码" />
-        </el-form-item>
         <el-form-item label="姓名">
           <el-input v-model="editForm.fullName" placeholder="请输入姓名" />
         </el-form-item>
@@ -123,7 +100,6 @@ import {
 } from '@/api/components/apiUser'
 
 import {
-  sendStudentEmailCode,
   bindStudentInfo,
   updateStudentInfo,
   type StudentDTO
@@ -133,8 +109,6 @@ const loading = ref(true)
 const submitting = ref(false)
 const userInfo = ref<UserInfoVO | null>(null)
 const editDialogVisible = ref(false)
-const countdown = ref(0)
-const editCountdown = ref(0)
 
 const gradeOptions = [
   { label: '大一', value: 1 },
@@ -150,8 +124,6 @@ const getGradeText = (grade?: number) => {
 }
 
 const bindForm = ref<StudentDTO>({
-  email: '',
-  code: '',
   fullName: '',
   major: '',
   grade: 1,
@@ -159,8 +131,6 @@ const bindForm = ref<StudentDTO>({
 })
 
 const editForm = ref<StudentDTO>({
-  email: '',
-  code: '',
   fullName: '',
   major: '',
 })
@@ -181,59 +151,9 @@ const fetchUserInfo = async () => {
   }
 }
 
-const sendCode = async () => {
-  if (!bindForm.value.email) {
-    ElMessage.warning('请输入学生邮箱')
-    return
-  }
-  if (!bindForm.value.email.endsWith('@stu.xmu.edu.cn')) {
-    ElMessage.warning('邮箱必须以@stu.xmu.edu.cn结尾')
-    return
-  }
-
-  try {
-    const response = await sendStudentEmailCode(bindForm.value.email)
-    if (response.code === 200) {
-      ElMessage.success('验证码已发送')
-      countdown.value = 60
-      const timer = setInterval(() => {
-        countdown.value--
-        if (countdown.value <= 0) clearInterval(timer)
-      }, 1000)
-    }
-  } catch (error: any) {
-    ElMessage.error(error.response?.data?.msg || '发送验证码失败')
-  }
-}
-
-const sendEditCode = async () => {
-  if (!editForm.value.email) {
-    ElMessage.warning('请输入学生邮箱')
-    return
-  }
-  if (!editForm.value.email.endsWith('@stu.xmu.edu.cn')) {
-    ElMessage.warning('邮箱必须以@stu.xmu.edu.cn结尾')
-    return
-  }
-
-  try {
-    const response = await sendStudentEmailCode(editForm.value.email)
-    if (response.code === 200) {
-      ElMessage.success('验证码已发送')
-      editCountdown.value = 60
-      const timer = setInterval(() => {
-        editCountdown.value--
-        if (editCountdown.value <= 0) clearInterval(timer)
-      }, 1000)
-    }
-  } catch (error: any) {
-    ElMessage.error(error.response?.data?.msg || '发送验证码失败')
-  }
-}
-
 const bindStudent = async () => {
-  if (!bindForm.value.email || !bindForm.value.code || !bindForm.value.fullName || !bindForm.value.major) {
-    ElMessage.warning('请填写完整信息')
+  if (!bindForm.value.fullName || !bindForm.value.major) {
+    ElMessage.warning('请填写姓名和专业')
     return
   }
 
@@ -254,8 +174,6 @@ const bindStudent = async () => {
 const showEditDialog = () => {
   if (userInfo.value) {
     editForm.value = {
-      email: userInfo.value.email || '',
-      code: '',
       fullName: userInfo.value.fullName || '',
       major: userInfo.value.major || '',
     }
@@ -264,8 +182,8 @@ const showEditDialog = () => {
 }
 
 const updateStudent = async () => {
-  if (!editForm.value.email || !editForm.value.code || !editForm.value.fullName || !editForm.value.major) {
-    ElMessage.warning('请填写完整信息')
+  if (!editForm.value.fullName || !editForm.value.major) {
+    ElMessage.warning('请填写姓名和专业')
     return
   }
 

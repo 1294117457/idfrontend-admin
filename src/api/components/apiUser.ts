@@ -4,9 +4,8 @@ import apiClient from '@/utils/http'
 
 export interface UserDTO {
   userId?: number
-  username: string
-  password?: string  // ✅ 创建时需要
-  email: string
+  username: string  // 即学校邮箱
+  password?: string
   phone?: string
   avatar?: string
   nickname?: string
@@ -41,8 +40,7 @@ export const deleteUser = async (userId: number) => {
 export interface UserInfoVO {
   // 用户信息
   userId: number
-  username: string
-  email: string
+  username: string  // 即学校邮箱
   phone?: string
 
   // 学生信息(如果已绑定)
@@ -105,7 +103,6 @@ export const updateUserBasicInfo = async (data: Partial<UserDTO>) => {
  */
 export interface UserManageQueryParams {
   username?: string
-  email?: string
   fullName?: string
   pageNum: number
   pageSize: number
@@ -128,8 +125,7 @@ export interface RoleVO {
 export interface UserManageVO {
   // 用户信息（必填）
   userId: number
-  username: string
-  email: string
+  username: string  // 即学校邮箱
   phone?: string
   role: string
   status: string

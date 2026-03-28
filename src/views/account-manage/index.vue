@@ -7,10 +7,6 @@
         <el-form-item label="用户名">
           <el-input v-model="queryForm.username" placeholder="请输入用户名" clearable />
         </el-form-item>
-        
-        <el-form-item label="邮箱">
-          <el-input v-model="queryForm.email" placeholder="请输入邮箱" clearable />
-        </el-form-item>
 
         <el-form-item label="姓名">
           <el-input v-model="queryForm.fullName" placeholder="请输入姓名" clearable />
@@ -30,10 +26,8 @@
       <el-table :data="userList" v-loading="loading" border stripe>
         <el-table-column type="index" label="序号" width="60" :index="indexMethod" />
         
-        <el-table-column prop="username" label="用户名" width="120" />
-        
-        <el-table-column prop="email" label="邮箱" width="200" />
-        
+        <el-table-column prop="username" label="用户名（学校邮箱）" min-width="200" />
+
         <el-table-column label="学生信息" min-width="200">
           <template #default="{ row }">
             <div v-if="row.fullName">
@@ -109,18 +103,14 @@
         </el-form-item>
         
         <el-form-item label="密码" required>
-          <el-input 
-            v-model="addForm.password" 
-            type="password" 
-            placeholder="请输入密码" 
-            show-password 
+          <el-input
+            v-model="addForm.password"
+            type="password"
+            placeholder="请输入密码"
+            show-password
           />
         </el-form-item>
-        
-        <el-form-item label="邮箱" required>
-          <el-input v-model="addForm.email" placeholder="请输入邮箱" />
-        </el-form-item>
-        
+
         <el-form-item label="手机号">
           <el-input v-model="addForm.phone" placeholder="请输入手机号" />
         </el-form-item>
@@ -171,7 +161,6 @@ import {
 // 查询表单
 const queryForm = reactive({
   username: '',
-  email: '',
   fullName: ''
 })
 
@@ -179,7 +168,6 @@ const queryForm = reactive({
 const addForm = reactive<UserDTO>({
   username: '',
   password: '',
-  email: '',
   phone: '',
   role: 'admin'
 })
@@ -217,10 +205,9 @@ const loadUsers = async () => {
 
     const response = await getUserListForAdmin({
       username: queryForm.username || undefined,
-      email: queryForm.email || undefined,
       fullName: queryForm.fullName || undefined,
-      pageNum: currentPage.value,  // ✅ 必须传递
-      pageSize: pageSize.value      // ✅ 必须传递
+      pageNum: currentPage.value,
+      pageSize: pageSize.value
     })
 
     if (response.code === 200) {
@@ -264,7 +251,6 @@ const handleSearch = () => {
 
 const handleReset = () => {
   queryForm.username = ''
-  queryForm.email = ''
   queryForm.fullName = ''
   currentPage.value = 1
   loadUsers()
@@ -275,7 +261,6 @@ const handleAdd = () => {
   Object.assign(addForm, {
     username: '',
     password: '',
-    email: '',
     phone: '',
     role: 'admin'
   })
@@ -283,20 +268,16 @@ const handleAdd = () => {
 }
 
 const confirmAdd = async () => {
-  // 表单验证
-  if (!addForm.username || !addForm.password || !addForm.email) {
+  if (!addForm.username || !addForm.password) {
     ElMessage.warning('请填写完整信息')
     return
   }
 
-  // 邮箱格式验证
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailPattern.test(addForm.email)) {
-    ElMessage.warning('邮箱格式不正确')
+  if (!addForm.username.endsWith('xmu.edu.cn')) {
+    ElMessage.warning('用户名必须是学校邮箱（以 xmu.edu.cn 结尾）')
     return
   }
 
-  // 密码强度验证
   if (addForm.password.length < 6) {
     ElMessage.warning('密码长度至少6位')
     return

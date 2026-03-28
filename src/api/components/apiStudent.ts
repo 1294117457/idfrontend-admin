@@ -3,8 +3,6 @@ import apiClient from '@/utils/http'
 // ==================== 学生相关类型 ====================
 
 export interface StudentDTO {
-  email?: string
-  code?: string
   fullName?: string
   major?: string
   grade?: number
@@ -50,31 +48,18 @@ export interface StudentQueryParams {
   pageSize: number
 }
 
-// ==================== 学生 API ====================
+// ==================== 学生 API（对应后端 /api/user/student/*）====================
 
 /**
- * 发送学生邮箱验证码
- */
-export const sendStudentEmailCode = async (email: string) => {
-  const response = await apiClient.post<{
-    code: number
-    msg: string
-    data: { status: string; validMinutes: number }
-  }>('/api/student/send-code', { email })
-  
-  return response.data
-}
-
-/**
- * 绑定学生信息
+ * 绑定学生信息（无需验证码）
  */
 export const bindStudentInfo = async (data: StudentDTO) => {
   const response = await apiClient.post<{
     code: number
     msg: string
     data: BindStudentVO
-  }>('/api/student/bind', data)
-  
+  }>('/api/user/student/bind', data)
+
   return response.data
 }
 
@@ -86,8 +71,8 @@ export const getStudentBasicInfo = async () => {
     code: number
     msg: string
     data: StudentDTO
-  }>('/api/student/info')
-  
+  }>('/api/user/student/info')
+
   return response.data
 }
 
@@ -99,8 +84,8 @@ export const updateStudentInfo = async (data: StudentDTO) => {
     code: number
     msg: string
     data: string
-  }>('/api/student/info', data)
-  
+  }>('/api/user/student/info', data)
+
   return response.data
 }
 
@@ -112,8 +97,8 @@ export const confirmStudentInfo = async () => {
     code: number
     msg: string
     data: string
-  }>('/api/student/confirm')
-  
+  }>('/api/user/student/confirm')
+
   return response.data
 }
 
@@ -130,7 +115,7 @@ export const getStudentDataList = async (params: StudentQueryParams) => {
       pageNum: number
       pageSize: number
     }
-  }>('/api/student/list', { params })
-  
+  }>('/api/user/student/list', { params })
+
   return response.data
 }

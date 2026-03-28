@@ -87,9 +87,8 @@ export const sentEmailCode = async (email: string) => {
 
 // ✅ 注册
 export interface RegisterItem {
-  username: string;
+  username: string;  // 学校邮箱（xmu.edu.cn 结尾）
   password: string;
-  email: string;
   code: string;
 }
 
@@ -99,6 +98,32 @@ export const regesterRequest = async (reItem: RegisterItem) => {
     return response.data;
   } catch (error) {
     throw new Error('注册请求失败,请稍后重试');
+  }
+}
+
+// 找回密码接口
+export interface ForgotPasswordRequest {
+  username: string
+  code: string
+  newPassword: string
+  confirmPassword: string
+}
+
+export const sendResetCode = async (email: string) => {
+  try {
+    const response = await apiClient.post<resType>('/api/authserver/sendResetCode', { email });
+    return response.data;
+  } catch (error) {
+    throw new Error('发送重置验证码失败,请稍后重试');
+  }
+}
+
+export const resetPassword = async (data: ForgotPasswordRequest) => {
+  try {
+    const response = await apiClient.post<resType>('/api/authserver/reset-password', data);
+    return response.data;
+  } catch (error) {
+    throw new Error('重置密码失败,请稍后重试');
   }
 }
 // 获取验证码图片
