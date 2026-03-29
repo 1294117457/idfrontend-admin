@@ -1,10 +1,11 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { getUserCompleteInfo, type UserInfoVO } from '@/api/components/apiUser' // ✅ 修改导入
+import { getUserCompleteInfo, getUserRoles, type UserInfoVO } from '@/api/components/apiUser' // ✅ 修改导入
 
 export const useUserStore = defineStore('user', () => {
   // ✅ 使用新的类型
   const userInfo = ref<UserInfoVO | null>(null)
+  const userRoles = ref<string[]>([])
 
   // 登录状态
   const isLoggedIn = computed(() => !!userInfo.value)
@@ -35,6 +36,20 @@ export const useUserStore = defineStore('user', () => {
   }
 
   /**
+   * ✅ 获取用户角色列表（用于菜单权限过滤）
+   */
+  const fetchUserRoles = async (userId: number): Promise<void> => {
+    try {
+      const res = await getUserRoles(userId)
+      if (res.code === 200) {
+        userRoles.value = res.data.map((r: any) => r.roleCode)
+      }
+    } catch (error) {
+      console.error('❌ 获取用户角色失败:', error)
+    }
+  }
+
+  /**
    * ✅ 更新用户信息 (局部更新)
    */
   const updateUserInfo = (partialInfo: Partial<UserInfoVO>) => {
@@ -48,6 +63,7 @@ export const useUserStore = defineStore('user', () => {
    */
   const clearAll = () => {
     userInfo.value = null
+    userRoles.value = []
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
   }
@@ -55,12 +71,14 @@ export const useUserStore = defineStore('user', () => {
   return {
     // 状态
     userInfo,
+    userRoles,
     isLoggedIn,
     hasToken,
     hasStudentInfo,
-    
+
     // 方法
     fetchUserData,
+    fetchUserRoles,
     updateUserInfo,
     clearAll
   }

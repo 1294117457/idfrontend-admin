@@ -51,11 +51,13 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useUserStore } from '@/stores/profile'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 const isCollapse = ref(false)
 const activePath = ref(route.path)
 
@@ -64,10 +66,29 @@ const homeRoute = router.options.routes.find((r) => r.path === '/home')
 // ✅ 过滤掉 redirect 和 hidden 的路由
 const menuRoutes = homeRoute?.children?.filter((r) => !r.redirect && !r.meta?.hidden) || []
 
-// 排序 menuRoutes
-const sortedMenuRoutes = computed(() =>
-  [...menuRoutes].sort((a, b) => (a.meta?.sort ?? Infinity) - (b.meta?.sort ?? Infinity)),
-)
+// 排序 + 角色过滤 menuRoutes
+const sortedMenuRoutes = computed(() => {
+  return [...menuRoutes]
+    .filter((route) => {
+      const required = route.meta?.requiresRoles as string[] | undefined
+      if (!required || required.length === 0) return true
+      return required.some((r) => userStore.userRoles.includes(r))
+    })
+    .sort((a, b) => (a.meta?.sort ?? Infinity) - (b.meta?.sort ?? Infinity))
+})
+
+// 进入 home 时获取用户角色
+onMounted(async () => {
+  if (userStore.userRoles.length === 0 && userStore.userInfo?.userId) {
+    await userStore.fetchUserRoles(userStore.userInfo.userId)
+  } else if (userStore.userRoles.length === 0) {
+    // userInfo 尚未加载，先加载用户信息再拉角色
+    const ok = await userStore.fetchUserData()
+    if (ok && userStore.userInfo?.userId) {
+      await userStore.fetchUserRoles(userStore.userInfo.userId)
+    }
+  }
+})
 
 watch(
   () => route.path,

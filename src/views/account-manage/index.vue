@@ -107,7 +107,7 @@
     >
       <el-form :model="addForm" label-width="100px">
         <el-form-item label="用户名" required>
-          <el-input v-model="addForm.username" placeholder="请输入用户名" />
+          <el-input v-model="addForm.username" placeholder="请输入用户名（邮箱或任意字符串）" />
         </el-form-item>
         
         <el-form-item label="密码" required>
@@ -298,11 +298,6 @@ const handleAdd = () => {
 const confirmAdd = async () => {
   if (!addForm.username || !addForm.password) {
     ElMessage.warning('请填写完整信息')
-    return
-  }
-
-  if (!addForm.username.endsWith('xmu.edu.cn')) {
-    ElMessage.warning('用户名必须是学校邮箱（以 xmu.edu.cn 结尾）')
     return
   }
 
