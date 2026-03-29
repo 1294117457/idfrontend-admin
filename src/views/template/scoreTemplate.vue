@@ -195,8 +195,8 @@
                 type="danger"
                 size="small"
                 @click="removeRule($index)"
-                icon="Delete"
-              />
+                :icon="Delete"
+              >删除</el-button>
             </template>
           </el-table-column>
         </el-table>

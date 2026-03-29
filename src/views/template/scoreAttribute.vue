@@ -107,7 +107,13 @@
             <div class="flex items-start gap-4">
               <div class="flex-1">
                 <el-form-item label="属性值/公式" required>
-                  <el-input v-model="item.attributeValue" placeholder="条件值或换算公式" />
+                  <el-input
+                    v-model="item.attributeValue"
+                    :placeholder="groupFormData.attributeType === 'TRANSFORM' ? '如: INPUT * 2.5 或 min(INPUT * 0.05, 6)' : '条件值，如: 省级、一等奖'"
+                  />
+                  <div v-if="groupFormData.attributeType === 'TRANSFORM'" class="text-xs text-gray-400 mt-1">
+                    请使用 <b>INPUT</b> 作为学生输入值的占位符，如 <code>INPUT * 0.05</code>
+                  </div>
                 </el-form-item>
 
                 <!-- 仅换算模板显示范围 -->
