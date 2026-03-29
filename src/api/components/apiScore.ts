@@ -247,6 +247,22 @@ export const revokeRecord = async (data: RevokeRequest): Promise<ApiResponse<nul
 }
 
 /**
+ * 审核员覆盖修改证明材料审核状态（1=通过, 2=驳回）
+ */
+export const overrideProof = async (
+  proofId: number,
+  status: 1 | 2,
+  comment?: string
+): Promise<ApiResponse<null>> => {
+  const response = await apiClient.put<ApiResponse<null>>(
+    `${apiBaseUrl}/api/proof/${proofId}/override`,
+    null,
+    { params: { status, comment } }
+  )
+  return response.data
+}
+
+/**
  * ✅ 获取待审核记录（分页）
  */
 export const getPendingRecordsPaged = async (
