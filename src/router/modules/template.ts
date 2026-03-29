@@ -5,7 +5,7 @@ import SettingIcon from '@/assets/icons/setting.vue' // 导入 setting.vue 组�
 
 export default {
   path: 'demand',
-  meta: { title: '模板管理', icon: SettingIcon, sort: 3 },
+  meta: { title: '模板管理', icon: SettingIcon, sort: 3, requiresRoles: ['admin', 'super_admin'] },
   children: [
     { path: 'scoreTemplate', component: ScoreTemplate, meta: { title: '分数模板' } },
     { path: 'scoreAttribute', component: ScoreAttribute, meta: { title: '属性管理' } },
