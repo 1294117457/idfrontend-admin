@@ -16,14 +16,27 @@ const router = createRouter({
 
 const PUBLIC_ROUTES = ['/login', '/register', '/forgot', '/']
 
-// ✅ 全局前置守卫 - 未登录跳转到登录页
-router.beforeEach((to, from, next) => {
+// ✅ 全局前置守卫 - 未登录跳转登录页，有角色限制的路由检查角色
+router.beforeEach(async (to, from, next) => {
   const token = localStorage.getItem('accessToken')
   if (!token && !PUBLIC_ROUTES.includes(to.path)) {
-    next('/login')
-  } else {
-    next()
+    return next('/login')
   }
+
+  // 检查当前路由链上是否有 requiresRoles
+  const requiredRoles = to.matched.flatMap(r => (r.meta?.requiresRoles as string[]) || [])
+  if (requiredRoles.length > 0 && token) {
+    const userStore = useUserStore()
+    if (userStore.userRoles.length === 0) {
+      await userStore.fetchUserRoles()
+    }
+    const hasRole = requiredRoles.some(r => userStore.userRoles.includes(r))
+    if (!hasRole) {
+      return next('/home/index')
+    }
+  }
+
+  next()
 })
 
 export default router
