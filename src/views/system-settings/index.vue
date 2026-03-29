@@ -67,7 +67,7 @@
                   v-if="row.fieldType === 'SCORE'"
                   size="small"
                   type="primary"
-                  @click="openSubcategoryPanel(row)"
+                  @click="openSubcategoryDialog(row)"
                 >
                   细分类别
                 </el-button>
@@ -77,14 +77,15 @@
           </el-table>
         </el-card>
 
-        <!-- 细分类别面板 -->
-        <el-card v-if="selectedField" class="mt-4">
-          <template #header>
-            <div class="flex justify-between items-center">
-              <span class="font-bold">「{{ selectedField.displayName }}」的细分类别</span>
-              <el-button type="primary" size="small" @click="openAddSubcategoryDialog">新增细分</el-button>
-            </div>
-          </template>
+        <!-- 细分类别弹窗 -->
+        <el-dialog
+          v-model="subcategoryDialogVisible"
+          :title="`「${selectedField?.displayName || ''}」的细分类别管理`"
+          width="700px"
+        >
+          <div class="flex justify-end mb-3">
+            <el-button type="primary" size="small" @click="openAddSubcategoryDialog">新增细分</el-button>
+          </div>
 
           <el-table :data="subcategories" border stripe>
             <el-table-column prop="id" label="ID" width="60" />
@@ -100,7 +101,11 @@
               </template>
             </el-table-column>
           </el-table>
-        </el-card>
+
+          <template #footer>
+            <el-button @click="subcategoryDialogVisible = false">关闭</el-button>
+          </template>
+        </el-dialog>
       </el-tab-pane>
     </el-tabs>
 
@@ -300,6 +305,7 @@ const handleDeleteField = async (id: number) => {
 const selectedField = ref<FieldConfig | null>(null)
 const subcategories = ref<FieldSubcategory[]>([])
 const subDialogVisible = ref(false)
+const subcategoryDialogVisible = ref(false)
 
 const emptySub = (): Partial<FieldSubcategory> & { id?: number } => ({
   id: undefined,
@@ -316,6 +322,11 @@ const openSubcategoryPanel = async (field: FieldConfig) => {
   selectedField.value = field
   const res = await getSubcategoryList(field.id)
   if (res.code === 200) subcategories.value = res.data
+}
+
+const openSubcategoryDialog = async (field: FieldConfig) => {
+  await openSubcategoryPanel(field)
+  subcategoryDialogVisible.value = true
 }
 
 const openAddSubcategoryDialog = () => {

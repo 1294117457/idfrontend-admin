@@ -15,7 +15,8 @@ export interface BonusTemplate {
   id?: number
   templateName: string
   templateType: 'CONDITION' | 'TRANSFORM'
-  scoreType: number
+  scoreType?: number
+  fieldId?: number
   templateMaxScore: number
   inputUnit?: string
   description: string

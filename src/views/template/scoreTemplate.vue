@@ -19,7 +19,7 @@
         <el-table-column label="分类" width="180">
           <template #default="{ row }">
             <el-tag :type="getScoreTypeColor(row.scoreType)">
-              {{ getScoreTypeText(row.scoreType) }}
+              {{ getScoreTypeText(row.scoreType, row.fieldId) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -69,10 +69,13 @@
           <el-row :gutter="20">
             <el-col :span="8">
               <el-form-item label="分类" required>
-                <el-select v-model="formData.scoreType" class="w-full">
-                  <el-option label="学术专长(12分)" :value="0" />
-                  <el-option label="综合表现(8分)" :value="1" />
-                  <el-option label="学业成绩换算" :value="2" />
+                <el-select v-model="formData.fieldId" class="w-full" placeholder="请选择分类">
+                  <el-option
+                    v-for="f in scoreFieldConfigs"
+                    :key="f.id"
+                    :label="f.maxScore != null ? `${f.displayName}(${f.maxScore}分)` : f.displayName"
+                    :value="f.id"
+                  />
                 </el-select>
               </el-form-item>
             </el-col>
@@ -217,7 +220,7 @@
             {{ detailData.templateType === 'CONDITION' ? '条件模板' : '换算模板' }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="分类">{{ getScoreTypeText(detailData.scoreType) }}</el-descriptions-item>
+        <el-descriptions-item label="分类">{{ getScoreTypeText(detailData.scoreType, detailData.fieldId) }}</el-descriptions-item>
         <el-descriptions-item label="总分">{{ detailData.templateMaxScore }}</el-descriptions-item>
         <!-- ✅ 新增: 显示输入单位 -->
         <el-descriptions-item 
@@ -280,6 +283,7 @@
     type RuleAttribute,
     getAttributesByType
   } from '@/api/components/apiAttribute'
+  import { getScoreFieldConfigs, type FieldConfig } from '@/api/components/apiFieldConfig'
   
 const templateList = ref([])
 const dialogVisible = ref(false)
@@ -287,11 +291,13 @@ const detailDialogVisible = ref(false)
 const isEdit = ref(false)
 const editingId = ref(0)
 const availableAttributes = ref<RuleAttribute[]>([])
+const scoreFieldConfigs = ref<FieldConfig[]>([])
 
 const formData = reactive<BonusTemplate>({
   templateName: '',
   templateType: 'CONDITION',
-  scoreType: 0,
+  scoreType: undefined,
+  fieldId: undefined,
   templateMaxScore: 0,
   inputUnit: '',  // ✅ 新增
   description: '',
@@ -301,13 +307,19 @@ const formData = reactive<BonusTemplate>({
 
 const detailData = ref<any>({ rules: [] })
 
-const getScoreTypeText = (scoreType: number) => {
+const getScoreTypeText = (scoreType: number | null | undefined, fieldId?: number | null) => {
+  // 优先用 fieldId 查找动态字段
+  if (fieldId != null) {
+    const f = scoreFieldConfigs.value.find(fc => fc.id === fieldId)
+    if (f) return f.maxScore != null ? `${f.displayName}(${f.maxScore}分)` : f.displayName
+  }
+  // 兼容旧 scoreType
   const map: Record<number, string> = {
     0: '学术专长(12分)',
     1: '综合表现(8分)',
     2: '学业成绩换算'
   }
-  return map[scoreType] || '未知类型'
+  return scoreType != null ? (map[scoreType] || '未知类型') : '-'
 }
 
 const getScoreTypeColor = (scoreType: number) => {
@@ -504,6 +516,7 @@ const openEditDialog = async (id: number) => {
       templateName: data.templateName,
       templateType: data.templateType,
       scoreType: data.scoreType,
+      fieldId: data.fieldId,
       templateMaxScore: data.templateMaxScore,
       inputUnit: data.inputUnit || '',  // ✅ 添加单位
       description: data.description,
@@ -537,7 +550,8 @@ const openDialog = async () => {
   Object.assign(formData, {
     templateName: '',
     templateType: 'CONDITION',
-    scoreType: 0,
+    scoreType: undefined,
+    fieldId: scoreFieldConfigs.value.length > 0 ? scoreFieldConfigs.value[0].id : undefined,
     templateMaxScore: 0,
     inputUnit: '分',  // ✅ 默认为 '分'
     description: '',
@@ -584,6 +598,9 @@ const handleDelete = async (id: number) => {
 
 onMounted(() => {
   loadTemplates()
+  getScoreFieldConfigs().then(res => {
+    if (res.code === 200) scoreFieldConfigs.value = res.data
+  })
 })
 </script>
 
