@@ -42,6 +42,14 @@ export const getAllFieldConfigs = async () => {
   return response.data
 }
 
+export const getScoreFieldConfigs = async () => {
+  const response = await apiClient.get<{ code: number; msg: string; data: FieldConfig[] }>(
+    '/api/field-config/list',
+    { params: { type: 'SCORE' } }
+  )
+  return response.data
+}
+
 export const createFieldConfig = async (data: Omit<FieldConfig, 'id'>) => {
   const response = await apiClient.post<{ code: number; msg: string; data: number }>(
     '/api/field-config',
