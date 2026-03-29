@@ -8,76 +8,182 @@
         </div>
       </template>
 
-      <el-table :data="fieldConfigs" border stripe>
-        <el-table-column prop="id" label="ID" width="60" />
-        <el-table-column prop="fieldKey" label="键名" width="180" />
-        <el-table-column prop="displayName" label="显示名称" width="150" />
-        <el-table-column prop="fieldType" label="类型" width="100">
+      <el-table
+        :data="fieldConfigs"
+        border
+        stripe
+        row-key="id"
+        :row-class-name="getRowClassName"
+        @expand-change="handleExpandChange"
+      >
+        <!-- ① 展开列 -->
+        <el-table-column type="expand">
           <template #default="{ row }">
-            <el-tag :type="row.fieldType === 'SCORE' ? 'primary' : 'warning'" size="small">
+            <div v-if="row.fieldType === 'SCORE'" class="px-6 py-3 bg-gray-50">
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-semibold text-sm text-gray-700">
+                  「{{ row.displayName }}」细分类别
+                </span>
+                <el-button size="small" type="primary" @click="openAddSubcategoryDialog(row)">
+                  新增细分
+                </el-button>
+              </div>
+              <el-table
+                :data="subcategoryMap[row.id] || []"
+                border
+                size="small"
+                v-loading="!!loadingSubs[row.id]"
+              >
+                <el-table-column prop="id" label="ID" width="60" />
+                <el-table-column prop="subKey" label="键名" width="110">
+                  <template #default="{ row: sub }">
+                    <el-input v-if="editingSubId === sub.id" v-model="editSubForm.subKey" size="small" />
+                    <span v-else>{{ sub.subKey }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="displayName" label="名称" width="160">
+                  <template #default="{ row: sub }">
+                    <el-input v-if="editingSubId === sub.id" v-model="editSubForm.displayName" size="small" />
+                    <span v-else>{{ sub.displayName }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="maxScore" label="上限分" width="110">
+                  <template #default="{ row: sub }">
+                    <el-input-number
+                      v-if="editingSubId === sub.id"
+                      v-model="editSubForm.maxScore"
+                      size="small"
+                      :min="0"
+                      :precision="2"
+                      style="width:100%"
+                    />
+                    <span v-else>{{ sub.maxScore }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="sortOrder" label="排序" width="80">
+                  <template #default="{ row: sub }">
+                    <el-input-number
+                      v-if="editingSubId === sub.id"
+                      v-model="editSubForm.sortOrder"
+                      size="small"
+                      :min="0"
+                      style="width:100%"
+                    />
+                    <span v-else>{{ sub.sortOrder }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="description" label="描述" min-width="180">
+                  <template #default="{ row: sub }">
+                    <el-input v-if="editingSubId === sub.id" v-model="editSubForm.description" size="small" />
+                    <span v-else>{{ sub.description }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" width="160" fixed="right">
+                  <template #default="{ row: sub }">
+                    <template v-if="editingSubId === sub.id">
+                      <el-button size="small" type="primary" :loading="saving" @click="handleSaveSubInline">保存</el-button>
+                      <el-button size="small" @click="cancelEditSub">取消</el-button>
+                    </template>
+                    <template v-else>
+                      <el-button size="small" @click="startEditSub(sub)">编辑</el-button>
+                      <el-button size="small" type="danger" @click="handleDeleteSubcategory(sub.id, row.id)">删除</el-button>
+                    </template>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+            <div v-else class="px-6 py-3 text-gray-400 text-sm bg-gray-50">
+              需求条件字段无细分类别
+            </div>
+          </template>
+        </el-table-column>
+
+        <!-- ② 主字段列（行内编辑） -->
+        <el-table-column prop="id" label="ID" width="60" />
+        <el-table-column prop="fieldKey" label="键名" width="180">
+          <template #default="{ row }">
+            <el-input v-if="editingFieldId === row.id" v-model="editFieldForm.fieldKey" size="small" />
+            <span v-else>{{ row.fieldKey }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="displayName" label="显示名称" width="150">
+          <template #default="{ row }">
+            <el-input v-if="editingFieldId === row.id" v-model="editFieldForm.displayName" size="small" />
+            <span v-else>{{ row.displayName }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="fieldType" label="类型" width="130">
+          <template #default="{ row }">
+            <el-select
+              v-if="editingFieldId === row.id"
+              v-model="editFieldForm.fieldType"
+              size="small"
+              style="width:110px"
+            >
+              <el-option label="计分 (SCORE)" value="SCORE" />
+              <el-option label="需求 (DEMAND)" value="DEMAND" />
+            </el-select>
+            <el-tag v-else :type="row.fieldType === 'SCORE' ? 'primary' : 'warning'" size="small">
               {{ row.fieldType === 'SCORE' ? '计分' : '需求' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="maxScore" label="上限分" width="90" />
-        <el-table-column prop="sortOrder" label="排序" width="70" />
+        <el-table-column prop="maxScore" label="上限分" width="110">
+          <template #default="{ row }">
+            <el-input-number
+              v-if="editingFieldId === row.id && editFieldForm.fieldType === 'SCORE'"
+              v-model="editFieldForm.maxScore"
+              size="small"
+              :min="0"
+              :precision="2"
+              style="width:100%"
+            />
+            <span v-else>{{ row.fieldType === 'SCORE' ? (row.maxScore ?? '-') : '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="sortOrder" label="排序" width="80">
+          <template #default="{ row }">
+            <el-input-number
+              v-if="editingFieldId === row.id"
+              v-model="editFieldForm.sortOrder"
+              size="small"
+              :min="0"
+              style="width:100%"
+            />
+            <span v-else>{{ row.sortOrder }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="isActive" label="状态" width="80">
           <template #default="{ row }">
-            <el-tag :type="row.isActive ? 'success' : 'info'" size="small">
+            <el-switch v-if="editingFieldId === row.id" v-model="editFieldForm.isActive" size="small" />
+            <el-tag v-else :type="row.isActive ? 'success' : 'info'" size="small">
               {{ row.isActive ? '启用' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="description" label="描述" min-width="180" show-overflow-tooltip />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip>
           <template #default="{ row }">
-            <el-button size="small" @click="openEditFieldDialog(row)">编辑</el-button>
-            <el-button
-              v-if="row.fieldType === 'SCORE'"
-              size="small"
-              type="primary"
-              @click="openSubcategoryDialog(row)"
-            >
-              细分类别
-            </el-button>
-            <el-button size="small" type="danger" @click="handleDeleteField(row.id)">删除</el-button>
+            <el-input v-if="editingFieldId === row.id" v-model="editFieldForm.description" size="small" />
+            <span v-else>{{ row.description }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="160" fixed="right">
+          <template #default="{ row }">
+            <template v-if="editingFieldId === row.id">
+              <el-button size="small" type="primary" :loading="saving" @click="handleSaveFieldInline">保存</el-button>
+              <el-button size="small" @click="cancelEditField">取消</el-button>
+            </template>
+            <template v-else>
+              <el-button size="small" @click="startEditField(row)">编辑</el-button>
+              <el-button size="small" type="danger" @click="handleDeleteField(row.id)">删除</el-button>
+            </template>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
 
-    <!-- ========== 细分类别弹窗 ========== -->
-    <el-dialog
-      v-model="subcategoryDialogVisible"
-      :title="`「${selectedField?.displayName || ''}」的细分类别管理`"
-      width="700px"
-    >
-      <div class="flex justify-end mb-3">
-        <el-button type="primary" size="small" @click="openAddSubcategoryDialog">新增细分</el-button>
-      </div>
-
-      <el-table :data="subcategories" border stripe>
-        <el-table-column prop="id" label="ID" width="60" />
-        <el-table-column prop="subKey" label="键名" width="100" />
-        <el-table-column prop="displayName" label="名称" width="150" />
-        <el-table-column prop="maxScore" label="上限分" width="90" />
-        <el-table-column prop="sortOrder" label="排序" width="70" />
-        <el-table-column prop="description" label="描述" min-width="180" show-overflow-tooltip />
-        <el-table-column label="操作" width="160" fixed="right">
-          <template #default="{ row }">
-            <el-button size="small" @click="openEditSubcategoryDialog(row)">编辑</el-button>
-            <el-button size="small" type="danger" @click="handleDeleteSubcategory(row.id)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <template #footer>
-        <el-button @click="subcategoryDialogVisible = false">关闭</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- ========== 新增/编辑字段弹窗 ========== -->
-    <el-dialog v-model="fieldDialogVisible" :title="fieldForm.id ? '编辑字段' : '新增字段'" width="500px">
+    <!-- ========== 新增字段弹窗（仅用于新增） ========== -->
+    <el-dialog v-model="fieldDialogVisible" title="新增字段" width="500px">
       <el-form :model="fieldForm" label-width="100px">
         <el-form-item label="键名" required>
           <el-input v-model="fieldForm.fieldKey" placeholder="如 specialty / demand_english" />
@@ -109,12 +215,12 @@
       </el-form>
       <template #footer>
         <el-button @click="fieldDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="handleSaveField">确定</el-button>
+        <el-button type="primary" :loading="saving" @click="handleSaveNewField">确定</el-button>
       </template>
     </el-dialog>
 
-    <!-- ========== 新增/编辑细分类别弹窗 ========== -->
-    <el-dialog v-model="subDialogVisible" :title="subForm.id ? '编辑细分类别' : '新增细分类别'" width="450px">
+    <!-- ========== 新增细分类别弹窗（仅用于新增） ========== -->
+    <el-dialog v-model="subDialogVisible" title="新增细分类别" width="450px">
       <el-form :model="subForm" label-width="100px">
         <el-form-item label="键名" required>
           <el-input v-model="subForm.subKey" placeholder="如 A / B / C" />
@@ -134,7 +240,7 @@
       </el-form>
       <template #footer>
         <el-button @click="subDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="handleSaveSubcategory">确定</el-button>
+        <el-button type="primary" :loading="saving" @click="handleSaveNewSub">确定</el-button>
       </template>
     </el-dialog>
   </div>
@@ -158,22 +264,18 @@ import {
 
 // ==================== 字段配置 ====================
 const fieldConfigs = ref<FieldConfig[]>([])
-const fieldDialogVisible = ref(false)
 const saving = ref(false)
 
-const emptyField = (): Partial<FieldConfig> & { id?: number } => ({
-  id: undefined,
-  fieldKey: '',
-  displayName: '',
-  fieldType: 'SCORE',
-  maxScore: undefined,
-  conditions: '',
-  description: '',
-  sortOrder: 0,
-  isActive: true
+// 新增字段弹窗
+const fieldDialogVisible = ref(false)
+const fieldForm = ref<Partial<FieldConfig> & { id?: number }>({
+  fieldKey: '', displayName: '', fieldType: 'SCORE',
+  maxScore: undefined, conditions: '', description: '', sortOrder: 0, isActive: true
 })
 
-const fieldForm = ref<Partial<FieldConfig> & { id?: number }>(emptyField())
+// 行内编辑 - 字段
+const editingFieldId = ref<number | null>(null)
+const editFieldForm = ref<Partial<FieldConfig>>({})
 
 const loadFieldConfigs = async () => {
   const res = await getAllFieldConfigs()
@@ -181,16 +283,23 @@ const loadFieldConfigs = async () => {
 }
 
 const openAddFieldDialog = () => {
-  fieldForm.value = emptyField()
+  fieldForm.value = {
+    fieldKey: '', displayName: '', fieldType: 'SCORE',
+    maxScore: undefined, conditions: '', description: '', sortOrder: 0, isActive: true
+  }
   fieldDialogVisible.value = true
 }
 
-const openEditFieldDialog = (row: FieldConfig) => {
-  fieldForm.value = { ...row }
-  fieldDialogVisible.value = true
+const startEditField = (row: FieldConfig) => {
+  editingFieldId.value = row.id
+  editFieldForm.value = { ...row }
 }
 
-const handleSaveField = async () => {
+const cancelEditField = () => {
+  editingFieldId.value = null
+}
+
+const handleSaveNewField = async () => {
   if (!fieldForm.value.fieldKey || !fieldForm.value.displayName) {
     ElMessage.warning('请填写键名和显示名称')
     return
@@ -198,18 +307,37 @@ const handleSaveField = async () => {
   saving.value = true
   try {
     const payload = { ...fieldForm.value }
-    if (!payload.conditions || payload.conditions.trim() === '') payload.conditions = undefined as any
+    if (!payload.conditions || (payload.conditions as string).trim() === '') payload.conditions = undefined as any
     if (payload.fieldType !== 'SCORE') payload.maxScore = undefined as any
-
-    let res
-    if (fieldForm.value.id) {
-      res = await updateFieldConfig(fieldForm.value.id, payload as FieldConfig)
+    const res = await createFieldConfig(payload as Omit<FieldConfig, 'id'>)
+    if (res.code === 200) {
+      ElMessage.success('新增成功')
+      fieldDialogVisible.value = false
+      await loadFieldConfigs()
     } else {
-      res = await createFieldConfig(payload as Omit<FieldConfig, 'id'>)
+      ElMessage.error(res.msg || '新增失败')
     }
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.msg || '新增失败')
+  } finally {
+    saving.value = false
+  }
+}
+
+const handleSaveFieldInline = async () => {
+  if (!editFieldForm.value.fieldKey || !editFieldForm.value.displayName) {
+    ElMessage.warning('请填写键名和显示名称')
+    return
+  }
+  saving.value = true
+  try {
+    const payload = { ...editFieldForm.value }
+    if (!payload.conditions || (payload.conditions as string).trim() === '') payload.conditions = undefined as any
+    if (payload.fieldType !== 'SCORE') payload.maxScore = undefined as any
+    const res = await updateFieldConfig(editingFieldId.value!, payload as FieldConfig)
     if (res.code === 200) {
       ElMessage.success('保存成功')
-      fieldDialogVisible.value = false
+      editingFieldId.value = null
       await loadFieldConfigs()
     } else {
       ElMessage.error(res.msg || '保存失败')
@@ -222,73 +350,104 @@ const handleSaveField = async () => {
 }
 
 const handleDeleteField = async (id: number) => {
-  await ElMessageBox.confirm('确认删除该字段配置？', '提示', { type: 'warning' })
-  const res = await deleteFieldConfig(id)
-  if (res.code === 200) {
-    ElMessage.success('删除成功')
-    await loadFieldConfigs()
-    if (selectedField.value?.id === id) selectedField.value = null
-  } else {
-    ElMessage.error(res.msg || '删除失败')
+  try {
+    await ElMessageBox.confirm('确认删除该字段配置？', '提示', { type: 'warning' })
+    const res = await deleteFieldConfig(id)
+    if (res.code === 200) {
+      ElMessage.success('删除成功')
+      await loadFieldConfigs()
+    } else {
+      ElMessage.error(res.msg || '删除失败')
+    }
+  } catch { /* cancelled */ }
+}
+
+const getRowClassName = ({ row }: { row: FieldConfig }) =>
+  row.fieldType === 'DEMAND' ? 'demand-row' : ''
+
+// ==================== 细分类别 ====================
+const subcategoryMap = ref<Record<number, FieldSubcategory[]>>({})
+const loadingSubs = ref<Record<number, boolean>>({})
+
+// 行内编辑 - 细分
+const editingSubId = ref<number | null>(null)
+const editSubForm = ref<Partial<FieldSubcategory>>({})
+
+// 新增细分弹窗
+const subDialogVisible = ref(false)
+const subForm = ref<Partial<FieldSubcategory>>({
+  subKey: '', displayName: '', maxScore: 0, description: '', sortOrder: 0
+})
+const addingSubFieldId = ref<number | null>(null)
+
+const handleExpandChange = async (row: FieldConfig) => {
+  if (row.fieldType !== 'SCORE') return
+  if (subcategoryMap.value[row.id]) return // already loaded
+  loadingSubs.value[row.id] = true
+  try {
+    const res = await getSubcategoryList(row.id)
+    if (res.code === 200) subcategoryMap.value[row.id] = res.data
+  } finally {
+    loadingSubs.value[row.id] = false
   }
 }
 
-// ==================== 细分类别 ====================
-const selectedField = ref<FieldConfig | null>(null)
-const subcategories = ref<FieldSubcategory[]>([])
-const subDialogVisible = ref(false)
-const subcategoryDialogVisible = ref(false)
-
-const emptySub = (): Partial<FieldSubcategory> & { id?: number } => ({
-  id: undefined,
-  subKey: '',
-  displayName: '',
-  maxScore: 0,
-  description: '',
-  sortOrder: 0
-})
-
-const subForm = ref<Partial<FieldSubcategory> & { id?: number }>(emptySub())
-
-const openSubcategoryPanel = async (field: FieldConfig) => {
-  selectedField.value = field
-  const res = await getSubcategoryList(field.id)
-  if (res.code === 200) subcategories.value = res.data
+const refreshSubs = async (fieldId: number) => {
+  const res = await getSubcategoryList(fieldId)
+  if (res.code === 200) subcategoryMap.value[fieldId] = res.data
 }
 
-const openSubcategoryDialog = async (field: FieldConfig) => {
-  await openSubcategoryPanel(field)
-  subcategoryDialogVisible.value = true
-}
-
-const openAddSubcategoryDialog = () => {
-  subForm.value = emptySub()
+const openAddSubcategoryDialog = (field: FieldConfig) => {
+  addingSubFieldId.value = field.id
+  subForm.value = { subKey: '', displayName: '', maxScore: 0, description: '', sortOrder: 0 }
   subDialogVisible.value = true
 }
 
-const openEditSubcategoryDialog = (row: FieldSubcategory) => {
-  subForm.value = { ...row }
-  subDialogVisible.value = true
-}
-
-const handleSaveSubcategory = async () => {
+const handleSaveNewSub = async () => {
   if (!subForm.value.subKey || !subForm.value.displayName) {
     ElMessage.warning('请填写键名和名称')
     return
   }
   saving.value = true
   try {
-    let res
-    if (subForm.value.id) {
-      res = await updateSubcategory(subForm.value.id, subForm.value as FieldSubcategory)
+    const payload = { ...subForm.value, fieldId: addingSubFieldId.value!, isActive: true }
+    const res = await createSubcategory(payload as Omit<FieldSubcategory, 'id'>)
+    if (res.code === 200) {
+      ElMessage.success('新增成功')
+      subDialogVisible.value = false
+      await refreshSubs(addingSubFieldId.value!)
     } else {
-      const payload = { ...subForm.value, fieldId: selectedField.value!.id, isActive: true }
-      res = await createSubcategory(payload as Omit<FieldSubcategory, 'id'>)
+      ElMessage.error(res.msg || '新增失败')
     }
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.msg || '新增失败')
+  } finally {
+    saving.value = false
+  }
+}
+
+const startEditSub = (sub: FieldSubcategory) => {
+  editingSubId.value = sub.id
+  editSubForm.value = { ...sub }
+}
+
+const cancelEditSub = () => {
+  editingSubId.value = null
+}
+
+const handleSaveSubInline = async () => {
+  if (!editSubForm.value.subKey || !editSubForm.value.displayName) {
+    ElMessage.warning('请填写键名和名称')
+    return
+  }
+  saving.value = true
+  try {
+    const res = await updateSubcategory(editingSubId.value!, editSubForm.value as FieldSubcategory)
     if (res.code === 200) {
       ElMessage.success('保存成功')
-      subDialogVisible.value = false
-      await openSubcategoryPanel(selectedField.value!)
+      const fieldId = editSubForm.value.fieldId!
+      editingSubId.value = null
+      await refreshSubs(fieldId)
     } else {
       ElMessage.error(res.msg || '保存失败')
     }
@@ -299,18 +458,26 @@ const handleSaveSubcategory = async () => {
   }
 }
 
-const handleDeleteSubcategory = async (id: number) => {
-  await ElMessageBox.confirm('确认删除该细分类别？', '提示', { type: 'warning' })
-  const res = await deleteSubcategory(id)
-  if (res.code === 200) {
-    ElMessage.success('删除成功')
-    await openSubcategoryPanel(selectedField.value!)
-  } else {
-    ElMessage.error(res.msg || '删除失败')
-  }
+const handleDeleteSubcategory = async (id: number, fieldId: number) => {
+  try {
+    await ElMessageBox.confirm('确认删除该细分类别？', '提示', { type: 'warning' })
+    const res = await deleteSubcategory(id)
+    if (res.code === 200) {
+      ElMessage.success('删除成功')
+      await refreshSubs(fieldId)
+    } else {
+      ElMessage.error(res.msg || '删除失败')
+    }
+  } catch { /* cancelled */ }
 }
 
 onMounted(() => {
   loadFieldConfigs()
 })
 </script>
+
+<style scoped>
+.demand-row :deep(.el-table__expand-icon) {
+  visibility: hidden;
+}
+</style>
