@@ -194,3 +194,39 @@ export const updateUserStatus = async (userId: number, status: 'active' | 'inact
 
   return response.data
 }
+
+/**
+ * 获取当前登录用户的角色列表（无需 admin 权限）
+ */
+export const getMyRoles = async () => {
+  const response = await apiClient.get<{
+    code: number
+    msg: string
+    data: RoleVO[]
+  }>('/api/user/me/roles')
+  return response.data
+}
+
+/**
+ * 批量创建用户
+ */
+export const batchCreateUsers = async (usernames: string[]) => {
+  const response = await apiClient.post<{
+    code: number
+    msg: string
+    data: { success: string[]; failed: string[]; successCount: number; failedCount: number }
+  }>('/api/user/admin/batch-create', { usernames })
+  return response.data
+}
+
+/**
+ * 获取学生导出字段列表（动态）
+ */
+export const getStudentExportFields = async () => {
+  const response = await apiClient.get<{
+    code: number
+    msg: string
+    data: { key: string; label: string }[]
+  }>('/api/user/student/export-fields')
+  return response.data
+}

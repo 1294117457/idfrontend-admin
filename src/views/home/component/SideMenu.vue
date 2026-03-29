@@ -79,14 +79,8 @@ const sortedMenuRoutes = computed(() => {
 
 // 进入 home 时获取用户角色
 onMounted(async () => {
-  if (userStore.userRoles.length === 0 && userStore.userInfo?.userId) {
-    await userStore.fetchUserRoles(userStore.userInfo.userId)
-  } else if (userStore.userRoles.length === 0) {
-    // userInfo 尚未加载，先加载用户信息再拉角色
-    const ok = await userStore.fetchUserData()
-    if (ok && userStore.userInfo?.userId) {
-      await userStore.fetchUserRoles(userStore.userInfo.userId)
-    }
+  if (userStore.userRoles.length === 0) {
+    await userStore.fetchUserRoles()
   }
 })
 

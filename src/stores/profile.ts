@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { getUserCompleteInfo, getUserRoles, type UserInfoVO } from '@/api/components/apiUser' // ✅ 修改导入
+import { getUserCompleteInfo, getMyRoles, type UserInfoVO } from '@/api/components/apiUser'
 
 export const useUserStore = defineStore('user', () => {
   // ✅ 使用新的类型
@@ -36,11 +36,11 @@ export const useUserStore = defineStore('user', () => {
   }
 
   /**
-   * ✅ 获取用户角色列表（用于菜单权限过滤）
+   * 获取当前用户角色列表（调用 /me/roles，任何已登录用户均可用）
    */
-  const fetchUserRoles = async (userId: number): Promise<void> => {
+  const fetchUserRoles = async (): Promise<void> => {
     try {
-      const res = await getUserRoles(userId)
+      const res = await getMyRoles()
       if (res.code === 200) {
         userRoles.value = res.data.map((r: any) => r.roleCode)
       }

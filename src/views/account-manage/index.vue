@@ -17,6 +17,7 @@
           <el-button @click="handleReset">重置</el-button>
           <!-- ✅ 新增用户按钮 -->
           <el-button type="success" @click="handleAdd">新增用户</el-button>
+          <el-button type="primary" plain @click="handleBatchImport">批量导入</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -140,7 +141,7 @@
       </template>
     </el-dialog>
 
-    <!-- ✅ 角色管理弹窗 -->
+    <!-- 角色管理弹窗 -->
     <el-dialog
       v-model="roleDialogVisible"
       title="角色管理"
@@ -168,12 +169,69 @@
         <el-button type="primary" :loading="saving" @click="confirmAssignRoles">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 批量导入弹窗 -->
+    <el-dialog
+      v-model="batchImportDialogVisible"
+      title="批量导入用户"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <p class="text-gray-500 mb-3 text-sm">上传 XLS/XLSX 文件，第一列为邮箱（账号），初始密码统一为 <strong>123456</strong>，角色为普通用户。</p>
+      <el-upload
+        ref="uploadRef"
+        :auto-upload="false"
+        :limit="1"
+        :on-change="handleFileChange"
+        :on-remove="handleFileRemove"
+        accept=".xls,.xlsx"
+        drag
+      >
+        <div class="py-6">
+          <div class="text-gray-400 text-sm">拖拽文件到此处，或 <span class="text-blue-500">点击上传</span></div>
+          <div class="text-gray-400 text-xs mt-1">仅支持 .xls / .xlsx 格式</div>
+        </div>
+      </el-upload>
+
+      <div v-if="previewUsernames.length > 0" class="mt-4">
+        <p class="text-sm font-medium mb-2">预览（共 {{ previewUsernames.length }} 条）：</p>
+        <div class="bg-gray-50 rounded p-3 max-h-40 overflow-y-auto text-sm text-gray-700">
+          <div v-for="(name, idx) in previewUsernames.slice(0, 10)" :key="idx">{{ name }}</div>
+          <div v-if="previewUsernames.length > 10" class="text-gray-400">... 共 {{ previewUsernames.length }} 条</div>
+        </div>
+      </div>
+
+      <div v-if="batchResult" class="mt-4">
+        <el-alert
+          :title="`导入完成：成功 ${batchResult.successCount} 条，跳过 ${batchResult.failedCount} 条`"
+          :type="batchResult.failedCount > 0 ? 'warning' : 'success'"
+          show-icon
+          :closable="false"
+        />
+        <div v-if="batchResult.failed.length > 0" class="mt-2 text-xs text-gray-500 max-h-24 overflow-y-auto">
+          <div v-for="f in batchResult.failed" :key="f">{{ f }}</div>
+        </div>
+      </div>
+
+      <template #footer>
+        <el-button @click="closeBatchImport">取消</el-button>
+        <el-button
+          type="primary"
+          :loading="batchImporting"
+          :disabled="previewUsernames.length === 0"
+          @click="confirmBatchImport"
+        >
+          确认导入
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import * as XLSX from 'xlsx'
 import { getRoleList, type RolePO } from '@/api/components/apiRBAC'
 import {
   getUserListForAdmin,
@@ -182,6 +240,7 @@ import {
   updateUserStatus,
   createUser,
   deleteUser,
+  batchCreateUsers,
   type UserManageVO,
   type UserDTO
 } from '@/api/components/apiUser'
@@ -461,6 +520,61 @@ const getGradeLabel = (grade: number) => {
     4: '大四'
   }
   return gradeMap[grade] || `年级${grade}`
+}
+
+// ==================== 批量导入 ====================
+const batchImportDialogVisible = ref(false)
+const previewUsernames = ref<string[]>([])
+const batchImporting = ref(false)
+const batchResult = ref<{ success: string[]; failed: string[]; successCount: number; failedCount: number } | null>(null)
+const uploadRef = ref()
+
+const handleBatchImport = () => {
+  previewUsernames.value = []
+  batchResult.value = null
+  batchImportDialogVisible.value = true
+}
+
+const handleFileChange = (file: any) => {
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const data = new Uint8Array(e.target!.result as ArrayBuffer)
+    const workbook = XLSX.read(data, { type: 'array' })
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    const rows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 })
+    previewUsernames.value = rows
+      .map((row: any[]) => String(row[0] ?? '').trim())
+      .filter((v: string) => v.length > 0)
+  }
+  reader.readAsArrayBuffer(file.raw)
+}
+
+const handleFileRemove = () => {
+  previewUsernames.value = []
+}
+
+const confirmBatchImport = async () => {
+  if (previewUsernames.value.length === 0) return
+  batchImporting.value = true
+  try {
+    const res = await batchCreateUsers(previewUsernames.value)
+    if (res.code === 200) {
+      batchResult.value = res.data
+      await loadUsers()
+    } else {
+      ElMessage.error(res.msg || '批量导入失败')
+    }
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.msg || '批量导入失败')
+  } finally {
+    batchImporting.value = false
+  }
+}
+
+const closeBatchImport = () => {
+  batchImportDialogVisible.value = false
+  batchResult.value = null
+  previewUsernames.value = []
 }
 
 // ==================== 初始化 ====================

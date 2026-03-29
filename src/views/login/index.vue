@@ -13,6 +13,7 @@ const userStore = useUserStore()
 const router = useRouter()
 const captchaUrl = ref('')
 const captchaData = ref<CaptchaResponse | null>(null)
+const isLoggingIn = ref(false)
 
 const refreshCaptcha = async () => {
   try {
@@ -48,7 +49,9 @@ const validate = (): boolean => {  // ✅ 返回boolean
 }
 // ✅ 修改: 调用管理员登录接口
 const submitLogin = async () => {
+  if (isLoggingIn.value) return
   if (!validate()) return;
+  isLoggingIn.value = true
   try {
     // ✅ 使用管理员登录接口
     const response = await adminLoginPost(loginBody.value);
@@ -69,6 +72,7 @@ const submitLogin = async () => {
     console.error('登录失败', error);
     ElMessage.error('网络错误,请稍后重试');
   } finally{
+    isLoggingIn.value = false
     refreshCaptcha();
   }
 }
@@ -155,7 +159,7 @@ onMounted(() => {
               </div>
             </el-form-item>
             <el-form-item>
-              <button type="submit" class="h-12 w-full flex flex-row items-center justify-center bg-blue-700 font-[700] text-[20px] py-3text-xl tracking-[0.1em] text-white rounded-lg transition cursor-pointer  hover:bg-[#4672F4] active:scale-95" native-type="submit">登 录</button>
+              <button type="submit" :disabled="isLoggingIn" class="h-12 w-full flex flex-row items-center justify-center bg-blue-700 font-[700] text-[20px] py-3text-xl tracking-[0.1em] text-white rounded-lg transition cursor-pointer  hover:bg-[#4672F4] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed" native-type="submit">{{ isLoggingIn ? '登录中...' : '登 录' }}</button>
             </el-form-item>
             <div class="flex justify-between mt-7 text-gray-300 text-base font-bold">
               <span class="cursor-pointer" @click="handleRegister()">注册账号</span>
