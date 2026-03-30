@@ -49,3 +49,32 @@ export const deleteKnowledge = async (sourceFile: string): Promise<ApiResponse<v
   const response = await apiClient.delete(`${apiBaseUrl}/api/knowledge/${encodeURIComponent(sourceFile)}`)
   return response.data
 }
+
+/** AI 配置 */
+export interface AIConfig {
+  systemRole: string
+  apiKey: string
+  baseUrl: string
+  chatModel: string
+  embeddingModel: string
+}
+
+export interface AIConfigUpdate {
+  systemRole?: string
+  apiKey?: string
+  baseUrl?: string
+  chatModel?: string
+  embeddingModel?: string
+}
+
+/** 获取 AI 配置（apiKey 掩码显示） */
+export const getAIConfig = async (): Promise<ApiResponse<AIConfig>> => {
+  const response = await apiClient.get(`${apiBaseUrl}/api/ai-config`)
+  return response.data
+}
+
+/** 更新 AI 配置 */
+export const updateAIConfig = async (config: AIConfigUpdate): Promise<ApiResponse<void>> => {
+  const response = await apiClient.put(`${apiBaseUrl}/api/ai-config`, config)
+  return response.data
+}
