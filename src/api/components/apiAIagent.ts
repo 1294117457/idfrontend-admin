@@ -91,19 +91,40 @@ export const clearConversation = async (): Promise<ApiResponse<void>> => {
   return response.data
 }
 
+/** 上传结果 */
+export interface UploadResult {
+  fileName: string
+  chunkCount: number
+  textLength?: number
+  status: 'success' | 'parse_empty' | 'process_failed'
+}
+
+/** 知识库统计 */
+export interface KnowledgeStats {
+  totalFiles: number
+  totalChunks: number
+  files: KnowledgeFile[]
+}
+
 /** 获取知识库文件列表 */
 export const listKnowledge = async (): Promise<ApiResponse<KnowledgeFile[]>> => {
   const response = await apiClient.get(`${apiBaseUrl}/api/knowledge/list`)
   return response.data
 }
 
+/** 获取知识库统计（文件列表 + 分块总数） */
+export const getKnowledgeStats = async (): Promise<ApiResponse<KnowledgeStats>> => {
+  const response = await apiClient.get(`${apiBaseUrl}/api/knowledge/stats`)
+  return response.data
+}
+
 /** 上传知识库文件 */
-export const uploadKnowledge = async (file: File): Promise<ApiResponse<any>> => {
+export const uploadKnowledge = async (file: File): Promise<ApiResponse<UploadResult>> => {
   const formData = new FormData()
   formData.append('file', file)
   const response = await apiClient.post(`${apiBaseUrl}/api/knowledge/upload`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
-    timeout: 120000,
+    timeout: 300000,
   })
   return response.data
 }
