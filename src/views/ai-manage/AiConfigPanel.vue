@@ -43,6 +43,17 @@
         </div>
       </el-form-item>
 
+      <el-form-item label="上下文限制" prop="contextMaxMessages">
+        <el-input-number
+          v-model="form.contextMaxMessages"
+          :min="4"
+          :max="200"
+          :step="2"
+          controls-position="right"
+        />
+        <span class="text-xs text-gray-500 ml-2">条（每段对话最多保留的消息数，超限后提示用户开启新对话）</span>
+      </el-form-item>
+
       <el-form-item label="API Base URL">
         <el-input v-model="form.baseUrl" placeholder="如 https://dashscope.aliyuncs.com/compatible-mode/v1" />
       </el-form-item>
@@ -103,6 +114,7 @@ const form = ref<AIConfig>({
   baseUrl: '',
   chatModel: '',
   embeddingModel: '',
+  contextMaxMessages: 20,
 })
 
 const originalEmbeddingModel = ref('')
@@ -118,6 +130,7 @@ const loadConfig = async () => {
       form.value.chatModel = d.chatModel
       form.value.embeddingModel = d.embeddingModel
       form.value.baseUrl = d.baseUrl
+      form.value.contextMaxMessages = d.contextMaxMessages ?? 20
       maskedApiKey.value = d.apiKey
       originalEmbeddingModel.value = d.embeddingModel
     } else {
@@ -150,14 +163,13 @@ const onEmbeddingModelChange = async (newVal: string) => {
 const handleSave = async () => {
   saving.value = true
   try {
-    const update: Record<string, string> = {
+    const update = {
       systemRole: form.value.systemRole,
       chatModel: form.value.chatModel,
       embeddingModel: form.value.embeddingModel,
       baseUrl: form.value.baseUrl,
-    }
-    if (editingApiKey.value && form.value.apiKey) {
-      update.apiKey = form.value.apiKey
+      contextMaxMessages: form.value.contextMaxMessages,
+      ...(editingApiKey.value && form.value.apiKey ? { apiKey: form.value.apiKey } : {}),
     }
 
     const res = await updateAIConfig(update)
