@@ -142,6 +142,7 @@ export interface AIConfig {
   baseUrl: string
   chatModel: string
   embeddingModel: string
+  contextMaxMessages: number
 }
 
 export interface AIConfigUpdate {
@@ -150,6 +151,7 @@ export interface AIConfigUpdate {
   baseUrl?: string
   chatModel?: string
   embeddingModel?: string
+  contextMaxMessages?: number
 }
 
 /** 获取 AI 配置（apiKey 掩码显示） */
