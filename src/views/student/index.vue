@@ -49,33 +49,27 @@
     exportDialogVisible.value = true
   }
 
-  // ✅ 年级选项 (1-7: 大一到研三)
   const gradeOptions = [
     { label: '大一', value: 1 },
     { label: '大二', value: 2 },
     { label: '大三', value: 3 },
-    { label: '大四', value: 4 }
+    { label: '大四', value: 4 },
+    { label: '大五（五年制）', value: 5 },
   ]
 
-  // ✅ 根据年级获取标签颜色
   const getGradeTagType = (grade: number | undefined | null): string => {
     if (grade === undefined || grade === null) return 'info'
-
-    if (grade === 1) return 'success'   // 大一
-    if (grade === 2) return 'primary'   // 大二
-    if (grade === 3) return 'warning'   // 大三
-    if (grade === 4) return 'danger'    // 大四
+    if (grade === 1) return 'success'
+    if (grade === 2) return 'primary'
+    if (grade === 3) return 'warning'
+    if (grade >= 4) return 'danger'
     return 'info'
   }
 
-  // ✅ 获取年级显示文本
   const getGradeLabel = (grade: number | undefined | null): string => {
     if (grade === undefined || grade === null) return '-'
     const gradeMap: Record<number, string> = {
-      1: '大一',
-      2: '大二',
-      3: '大三',
-      4: '大四'
+      1: '大一', 2: '大二', 3: '大三', 4: '大四', 5: '大五'
     }
     return gradeMap[grade] || `年级${grade}`
   }

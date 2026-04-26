@@ -514,10 +514,7 @@ const getGradeTagType = (grade: number) => {
 
 const getGradeLabel = (grade: number) => {
   const gradeMap: Record<number, string> = {
-    1: '大一',
-    2: '大二',
-    3: '大三',
-    4: '大四'
+    1: '大一', 2: '大二', 3: '大三', 4: '大四', 5: '大五'
   }
   return gradeMap[grade] || `年级${grade}`
 }

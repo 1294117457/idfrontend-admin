@@ -3,7 +3,7 @@
       <!-- 悬浮按钮（可拖拽） -->
       <div
         ref="floatButton"
-        class="fixed z-[9999] cursor-pointer group"
+        class="ai-float-button fixed z-[9999] cursor-pointer group"
         :class="{ 'cursor-grabbing': isDragging }"
         :style="{ right: position.right + 'px', bottom: position.bottom + 'px' }"
         @mousedown="startDrag"
@@ -77,7 +77,7 @@
       <Transition name="slide-up">
         <div
           v-if="isOpen"
-          class="fixed z-[9998] w-96 h-[500px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+          class="ai-assistant-panel fixed z-[9998] w-[min(24rem,calc(100vw-1.5rem))] h-[min(500px,calc(100dvh-6rem))] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200/70"
           :style="dialogPosition"
         >
           <!-- 头部 -->
@@ -299,8 +299,8 @@
   
   // 计算对话框位置（跟随悬浮按钮）
   const dialogPosition = computed(() => {
-    const dialogWidth = 384  // w-96 = 24rem = 384px
-    const dialogHeight = 500
+    const dialogWidth = typeof window !== 'undefined' ? Math.min(384, window.innerWidth - 24) : 384
+    const dialogHeight = typeof window !== 'undefined' ? Math.min(500, window.innerHeight - 96) : 500
     const buttonSize = 56
     const gap = 16
     
@@ -314,7 +314,7 @@
       if (right < 0) right = 8
       // 左边界
       if (right + dialogWidth > window.innerWidth) {
-        right = window.innerWidth - dialogWidth - 8
+        right = Math.max(8, window.innerWidth - dialogWidth - 8)
       }
       // 上边界
       if (bottom + dialogHeight > window.innerHeight) {
@@ -628,6 +628,26 @@
   .cursor-grabbing {
     cursor: grabbing !important;
     user-select: none;
+  }
+
+  .ai-assistant-panel {
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 96px);
+  }
+
+  @media (max-width: 640px) {
+    .ai-float-button {
+      right: max(14px, env(safe-area-inset-right)) !important;
+      bottom: max(14px, env(safe-area-inset-bottom)) !important;
+    }
+
+    .ai-assistant-panel {
+      right: 12px !important;
+      bottom: 84px !important;
+      width: calc(100vw - 24px) !important;
+      height: min(72dvh, 500px) !important;
+      border-radius: 18px;
+    }
   }
   </style>
 

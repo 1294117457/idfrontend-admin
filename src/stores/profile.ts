@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { getUserCompleteInfo, getMyRoles, type UserInfoVO } from '@/api/modules/apiUser'
+import { getUserBasicInfo, getUserCompleteInfo, getMyRoles, type UserInfoVO } from '@/api/modules/apiUser'
 import { STORAGE_KEYS } from '@common/constants/storage'
 
 export const useUserStore = defineStore('user', () => {
@@ -15,12 +15,19 @@ export const useUserStore = defineStore('user', () => {
 
   const fetchUserData = async (): Promise<boolean> => {
     try {
-      const response = await getUserCompleteInfo()
-      if (response.code === 200) {
-        userInfo.value = response.data
+      const [completeRes, basicRes] = await Promise.all([
+        getUserCompleteInfo(),
+        getUserBasicInfo(),
+      ])
+      if (completeRes.code === 200) {
+        userInfo.value = {
+          ...completeRes.data,
+          avatar: basicRes.code === 200 ? basicRes.data.avatar : completeRes.data.avatar,
+          phone: completeRes.data.phone || (basicRes.code === 200 ? basicRes.data.phone : undefined),
+        }
         return true
       } else {
-        throw new Error(response.msg || '????????')
+        throw new Error(completeRes.msg || '????????')
       }
     } catch (error) {
       console.error('????????:', error)

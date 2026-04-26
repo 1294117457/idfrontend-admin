@@ -42,6 +42,7 @@ export interface UserInfoVO {
   userId: number
   username: string  // 即学校邮箱
   phone?: string
+  avatar?: string
 
   // 学生信息(如果已绑定)
   fullName?: string
@@ -95,6 +96,24 @@ export const updateUserBasicInfo = async (data: Partial<UserDTO>) => {
     data: string
   }>('/api/user/profile', data)
   
+  return response.data
+}
+
+/**
+ * 上传当前用户头像。后端会返回公开访问 URL，并同步写入 users.avatar。
+ */
+export const uploadAvatar = async (file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await apiClient.post<{
+    code: number
+    msg: string
+    data: string
+  }>('/api/file/avatar', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+
   return response.data
 }
 

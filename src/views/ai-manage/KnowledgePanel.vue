@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-3 gap-4 mb-4">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
       <el-card shadow="never" class="text-center">
         <el-statistic title="知识库文件数" :value="stats.totalFiles" />
       </el-card>
@@ -25,7 +25,7 @@
     </el-alert>
 
     <!-- 操作栏 -->
-    <div class="flex justify-end mb-4">
+    <div class="flex justify-start sm:justify-end mb-4">
       <el-button type="primary" @click="knowledgeFileInput?.click()" :loading="uploading">
         {{ uploading ? '解析入库中...' : '上传文件' }}
       </el-button>
@@ -39,7 +39,7 @@
     </div>
 
     <!-- 文件列表 -->
-    <el-table :data="stats.files" v-loading="loading" border stripe>
+    <el-table :data="stats.files" v-loading="loading" border stripe class="responsive-table">
       <el-table-column prop="sourceFile" label="文件名" min-width="300" />
       <el-table-column prop="chunkCount" label="知识块数" width="120" align="center" />
       <el-table-column label="操作" width="100" align="center">
@@ -178,3 +178,15 @@ onMounted(() => {
   loadStats()
 })
 </script>
+
+<style scoped>
+.responsive-table {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  :deep(.el-table__inner-wrapper) {
+    overflow-x: auto;
+  }
+}
+</style>

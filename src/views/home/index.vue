@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 // 定义组件名称
@@ -32,7 +32,7 @@ const modules = computed(() => {
         route.path !== 'home' &&
         route.meta?.title !== '首页',
     )
-    .sort((a, b) => (a.meta?.sort ?? Infinity) - (b.meta?.sort ?? Infinity))
+    .sort((a, b) => Number(a.meta?.sort ?? Infinity) - Number(b.meta?.sort ?? Infinity))
 })
 
 // 导航到指定路径
@@ -73,6 +73,7 @@ const getIconColor = (index: number) => {
 // 当前时间
 const currentTime = ref('')
 const currentDate = ref('')
+let timer: ReturnType<typeof setInterval> | undefined
 
 // 更新时间的函数
 const updateTime = () => {
@@ -103,77 +104,211 @@ watch(
 onMounted(() => {
   updateTime()
   // 每秒更新时间
-  setInterval(updateTime, 1000)
+  timer = setInterval(updateTime, 1000)
+})
+
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer)
+  }
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex flex-col items-center justify-center p-8">
-    <!-- 顶部标题区域 -->
-    <div class="text-center mb-8">
-      <h1 class="text-5xl font-bold text-white mb-2 drop-shadow-lg">
-        欢迎来到平台管理
-      </h1>
-      <p class="text-xl text-white/80">探索六合一平台管理系统</p>
-    </div>
+  <div class="admin-home">
+    <section class="hero-card">
+      <div>
+        <p class="eyebrow">后台管理平台</p>
+        <h1>欢迎来到平台管理</h1>
+        <p class="hero-desc">集中管理保研助手平台的模板、学生、审核、文件与 AI 能力，保持流程清晰高效。</p>
+      </div>
+      <div class="time-card">
+        <div class="time">{{ currentTime }}</div>
+        <div class="date">{{ currentDate }}</div>
+      </div>
+    </section>
 
-    <!-- 行星旋转区域 -->
-    <div class="relative w-[600px] h-[600px] mx-auto mb-8">
-      <!-- 中心时间显示 - "太阳" -->
-      <div class="absolute inset-0 flex items-center justify-center z-10">
-        <div class="bg-white/10 backdrop-blur-md rounded-full w-48 h-48 flex items-center justify-center shadow-2xl border border-white/20">
-          <div class="text-center">
-            <div class="text-5xl font-mono font-bold text-white mb-2">{{ currentTime }}</div>
-            <div class="text-sm text-white/80">{{ currentDate }}</div>
-          </div>
-        </div>
+    <section class="module-section">
+      <div class="section-title">
+        <h2>功能模块</h2>
+        <span>点击卡片进入对应管理模块</span>
       </div>
 
-      <!-- 轨道 -->
-      <div class="absolute inset-0 border-2 border-white/10 rounded-full"></div>
-
-      <!-- 行星 -->
-      <div
-        v-for="(module, index) in modules"
-        :key="module.path"
-        @click="navigateTo(module)"
-        class="absolute w-28 h-28 bg-white/10 backdrop-blur-md rounded-full shadow-2xl border border-white/20 cursor-pointer hover:bg-white/20 hover:scale-110 transition-all duration-300 flex items-center justify-center planet-orbit"
-        :style="{
-          '--orbit-delay': `${-index * 2}s`,
-          '--orbit-duration': '20s',
-          top: 'calc(50% - 56px)',
-          left: 'calc(50% - 56px)',
-        }"
-      >
-        <div class="flex flex-col items-center justify-center text-center">
-          <component v-if="module.meta?.icon" :is="module.meta.icon" class="w-8 h-8 text-white" />
-          <IconifyIconOffline
-            v-else
-            :icon="'mdi/view-dashboard'"
-            class="text-2xl text-white"
-          />
-          <h3 class="text-sm font-semibold text-white mt-2">
-            {{ module.meta?.title || module.path }}
-          </h3>
-        </div>
+      <div class="module-grid">
+        <button
+          v-for="(module, index) in modules"
+          :key="module.path"
+          class="module-card"
+          @click="navigateTo(module)"
+        >
+          <span class="module-icon" :class="getIconColor(index)">
+            <component v-if="module.meta?.icon" :is="module.meta.icon" class="w-7 h-7" />
+            <span v-else class="text-lg">●</span>
+          </span>
+          <span class="module-title">{{ module.meta?.title || module.path }}</span>
+          <span class="module-enter">进入管理 →</span>
+        </button>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.planet-orbit {
-  animation: orbit var(--orbit-duration) linear infinite;
-  animation-delay: var(--orbit-delay);
-  transform-origin: center;
+.admin-home {
+  min-height: calc(100dvh - 3rem);
+  padding: clamp(1rem, 2.5vw, 2rem);
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 34rem),
+    linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
 }
 
-@keyframes orbit {
-  0% {
-    transform: rotate(0deg) translateX(250px) rotate(0deg);
+.hero-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 1180px;
+  margin: 0 auto 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2.25rem);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+
+.eyebrow {
+  margin-bottom: 0.5rem;
+  color: #2563eb;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.hero-card h1 {
+  color: #0f172a;
+  font-size: clamp(1.85rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.hero-desc {
+  max-width: 620px;
+  margin-top: 0.75rem;
+  color: #64748b;
+  line-height: 1.8;
+}
+
+.time-card {
+  min-width: 230px;
+  padding: 1.25rem;
+  border: 1px solid #dbeafe;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  color: #fff;
+  text-align: center;
+}
+
+.time {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 800;
+}
+
+.date {
+  margin-top: 0.25rem;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.9rem;
+}
+
+.module-section {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.section-title {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.section-title h2 {
+  color: #0f172a;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.section-title span {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+}
+
+.module-card {
+  display: grid;
+  gap: 0.75rem;
+  min-height: 150px;
+  padding: 1.1rem;
+  text-align: left;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.module-card:hover {
+  transform: translateY(-2px);
+  border-color: #bfdbfe;
+  box-shadow: 0 16px 36px rgba(37, 99, 235, 0.12);
+}
+
+.module-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 14px;
+  background: #eff6ff;
+}
+
+.module-title {
+  color: #111827;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.module-enter {
+  align-self: end;
+  color: #2563eb;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .admin-home {
+    padding: 0.85rem;
   }
-  100% {
-    transform: rotate(360deg) translateX(250px) rotate(-360deg);
+
+  .hero-card {
+    grid-template-columns: 1fr;
+    border-radius: 20px;
+  }
+
+  .time-card {
+    min-width: 0;
+  }
+
+  .section-title {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }
 </style>
