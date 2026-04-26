@@ -1,4 +1,4 @@
-import apiClient from '@/utils/http'
+import apiClient from '@common/utils/http'
 
 // 发送验证码====
 export interface EmailItem {

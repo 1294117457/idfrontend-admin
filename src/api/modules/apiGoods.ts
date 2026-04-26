@@ -1,4 +1,4 @@
-import apiClient from '@/utils/http' // 导入拦截器实例
+import apiClient from '@common/utils/http' // 导入拦截器实例
 import { AxiosError } from 'axios' // 假设 apiBaseUrl 从环境变量获取
 const apiBaseUrl = import.meta.env.VITE_BASE_API
 export interface GoodsAuditDetail {

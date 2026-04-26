@@ -1,4 +1,4 @@
-import apiClient from '@/utils/http'
+import apiClient from '@common/utils/http'
 
 export const getSystemConfig = async (key: string) => {
   const response = await apiClient.get<{ code: number; msg: string; data: string }>(

@@ -92,7 +92,7 @@ import {
   uploadKnowledge,
   deleteKnowledge,
   type KnowledgeFile,
-} from '@/api/components/apiAIagent'
+} from '@/api/modules/apiAIagent'
 
 const loading = ref(false)
 const uploading = ref(false)

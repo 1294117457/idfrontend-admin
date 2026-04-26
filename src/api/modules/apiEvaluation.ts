@@ -1,4 +1,4 @@
-import apiClient from '@/utils/http'
+import apiClient from '@common/utils/http'
 // 分页查询参数
 export interface EvaluationQueryParams {
     studentId?: string

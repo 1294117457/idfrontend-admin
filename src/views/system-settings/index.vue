@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getSystemConfig, setSystemConfig } from '@/api/components/apiSystem'
+import { getSystemConfig, setSystemConfig } from '@/api/modules/apiSystem'
 
 const frontendLoginEnabled = ref(true)
 const switchLoading = ref(false)

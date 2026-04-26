@@ -278,12 +278,12 @@
     deleteTemplate,
     getTemplateDetail,
     type BonusTemplate
-  } from '@/api/components/apiTemplate'
+  } from '@/api/modules/apiTemplate'
   import {
     type RuleAttribute,
     getAttributesByType
-  } from '@/api/components/apiAttribute'
-  import { getScoreFieldConfigs, type FieldConfig } from '@/api/components/apiFieldConfig'
+  } from '@/api/modules/apiAttribute'
+  import { getScoreFieldConfigs, type FieldConfig } from '@/api/modules/apiFieldConfig'
   
 const templateList = ref([])
 const dialogVisible = ref(false)

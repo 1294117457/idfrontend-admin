@@ -2,20 +2,18 @@
   <el-menu
     :default-active="activePath"
     :collapse="isCollapse"
-    class="top-[3rem]"
+    class="side-menu"
     @open="handleOpen"
     @close="handleClose"
   >
-    <!-- 统一渲染所有一级菜单，按 sort 排序 -->
     <template v-for="item in sortedMenuRoutes" :key="item.path">
-      <!-- 有子路由，渲染为 el-sub-menu -->
       <el-sub-menu
         v-if="item.children && item.children.length"
         :index="item.path"
         class="bg-gradient-to-r from-blue-50 to-blue-10"
       >
         <template #title>
-          <component v-if="item.meta?.icon" :is="item.meta.icon" class="w-6 h-6" />
+          <component v-if="item.meta?.icon" :is="item.meta.icon" class="w-5 h-5 md:w-6 md:h-6" />
           <span>{{ item.meta?.title || item.path }}</span>
         </template>
         <el-menu-item
@@ -28,19 +26,17 @@
         </el-menu-item>
       </el-sub-menu>
 
-      <!-- 无子路由，渲染为普通菜单项 -->
       <el-menu-item
         v-else
         :index="item.path"
         @click="navigateTo('/home/' + item.path)"
         class="bg-gradient-to-r from-blue-50 to-blue-10"
       >
-        <component v-if="item.meta?.icon" :is="item.meta.icon" class="w-6 h-6" />
+        <component v-if="item.meta?.icon" :is="item.meta.icon" class="w-5 h-5 md:w-6 md:h-6" />
         <span>{{ item.meta?.title || item.path }}</span>
       </el-menu-item>
     </template>
 
-    <!-- 折叠/展开按钮 -->
     <div
       class="absolute top-1/2 -right-1 transform -translate-y-1/2 cursor-pointer p-2 bg-white shadow rounded-l-lg"
       @click="isCollapse = !isCollapse"
@@ -51,7 +47,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/profile'
 
@@ -61,12 +57,29 @@ const userStore = useUserStore()
 const isCollapse = ref(false)
 const activePath = ref(route.path)
 
-// 获取 /home 路由的子路由
+const COLLAPSE_BREAKPOINT = 1024
+
+const checkCollapse = () => {
+  if (window.innerWidth < COLLAPSE_BREAKPOINT) {
+    isCollapse.value = true
+  }
+}
+
+onMounted(async () => {
+  checkCollapse()
+  window.addEventListener('resize', checkCollapse)
+  if (userStore.userRoles.length === 0) {
+    await userStore.fetchUserRoles()
+  }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkCollapse)
+})
+
 const homeRoute = router.options.routes.find((r) => r.path === '/home')
-// ✅ 过滤掉 redirect 和 hidden 的路由
 const menuRoutes = homeRoute?.children?.filter((r) => !r.redirect && !r.meta?.hidden) || []
 
-// 排序 + 角色过滤 menuRoutes
 const sortedMenuRoutes = computed(() => {
   return [...menuRoutes]
     .filter((route) => {
@@ -75,13 +88,6 @@ const sortedMenuRoutes = computed(() => {
       return required.some((r) => userStore.userRoles.includes(r))
     })
     .sort((a, b) => (a.meta?.sort ?? Infinity) - (b.meta?.sort ?? Infinity))
-})
-
-// 进入 home 时获取用户角色
-onMounted(async () => {
-  if (userStore.userRoles.length === 0) {
-    await userStore.fetchUserRoles()
-  }
 })
 
 watch(
@@ -99,3 +105,15 @@ const navigateTo = (path: string) => {
 const handleOpen = (key: string, keyPath: string[]) => {}
 const handleClose = (key: string, keyPath: string[]) => {}
 </script>
+
+<style scoped>
+.side-menu {
+  position: relative;
+  top: 3rem;
+  height: calc(100vh - 3rem);
+  height: calc(100dvh - 3rem);
+  overflow-y: auto;
+  flex-shrink: 0;
+  transition: width 0.3s ease;
+}
+</style>

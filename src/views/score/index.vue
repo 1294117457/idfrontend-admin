@@ -12,7 +12,7 @@
     approveProof,          // ✅ 新增
     rejectProof,           // ✅ 新增
     type AuditRecord
-  } from '@/api/components/apiScore'
+  } from '@/api/modules/apiScore'
   import FileUtil from '@/components/FileUtil.vue'
   
   // ==================== 状态管理 ====================

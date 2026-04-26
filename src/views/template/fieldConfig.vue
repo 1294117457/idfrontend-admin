@@ -260,7 +260,7 @@ import {
   deleteSubcategory,
   type FieldConfig,
   type FieldSubcategory
-} from '@/api/components/apiFieldConfig'
+} from '@/api/modules/apiFieldConfig'
 
 // ==================== 字段配置 ====================
 const fieldConfigs = ref<FieldConfig[]>([])

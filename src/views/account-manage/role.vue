@@ -165,7 +165,7 @@ import {
   type RolePO,
   type RoleDTO,
   type PermissionPO
-} from '@/api/components/apiRBAC'
+} from '@/api/modules/apiRBAC'
 
 // ==================== 角色列表 ====================
 const roleList = ref<RolePO[]>([])

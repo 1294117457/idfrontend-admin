@@ -1,4 +1,4 @@
-import apiClient from '@/utils/http'
+import apiClient from '@common/utils/http'
 import axios from 'axios'
 
 const apiBaseUrl = import.meta.env.VITE_BASE_API
