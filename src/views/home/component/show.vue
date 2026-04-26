@@ -1,27 +1,42 @@
 <template>
-  <div class="flex h-screen select-none">
+  <div class="admin-layout">
     <TITLEUI />
-    <!-- 侧边菜单 -->
     <SIDEMENT />
-    <!-- 顶部导航栏 -->
     <TOPNAVE />
 
-    <!-- 主内容区域 -->
-    <div class="pt-[5rem]   dark:text-white w-full h-full"> <!-- 修改：暗黑模式下使用深灰色背景 -->
+    <main class="admin-main">
       <router-view />
-          <!-- ✅ AI 助手悬浮组件 -->
-    <AiAssistant />
-    </div>
+      <AiAssistant />
+    </main>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import TITLEUI from './titleUI.vue'
 import SIDEMENT from './SideMenu.vue'
 import TOPNAVE from './TopNave.vue'
 import AiAssistant from '@/views/ai-agent/index.vue'
-// 初始化主题（从 localStorage 加载）
+
 onMounted(async () => {
 })
 </script>
+
+<style scoped>
+.admin-layout {
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  user-select: none;
+}
+
+.admin-main {
+  flex: 1;
+  min-width: 0;
+  padding-top: 3rem;
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+}
+</style>

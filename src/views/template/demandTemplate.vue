@@ -149,7 +149,7 @@
     updateTemplate, 
     deleteTemplate,
     type DemandTemplate
-  } from '@/api/components/apiDemand'
+  } from '@/api/modules/apiDemand'
   
   const templateList = ref<DemandTemplate[]>([])
   const dialogVisible = ref(false)

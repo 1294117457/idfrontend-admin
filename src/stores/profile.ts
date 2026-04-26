@@ -1,43 +1,33 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { getUserCompleteInfo, getMyRoles, type UserInfoVO } from '@/api/components/apiUser'
+import { getUserCompleteInfo, getMyRoles, type UserInfoVO } from '@/api/modules/apiUser'
+import { STORAGE_KEYS } from '@common/constants/storage'
 
 export const useUserStore = defineStore('user', () => {
-  // ✅ 使用新的类型
   const userInfo = ref<UserInfoVO | null>(null)
   const userRoles = ref<string[]>([])
 
-  // 登录状态
   const isLoggedIn = computed(() => !!userInfo.value)
 
-  // Token 状态
-  const hasToken = computed(() => !!localStorage.getItem('accessToken'))
+  const hasToken = computed(() => !!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN))
 
-  // 是否已绑定学生信息
   const hasStudentInfo = computed(() => !!userInfo.value?.fullName)
 
-  /**
-   * ✅ 使用新接口获取用户完整信息
-   */
   const fetchUserData = async (): Promise<boolean> => {
     try {
-      const response = await getUserCompleteInfo() // ✅ 使用新接口
+      const response = await getUserCompleteInfo()
       if (response.code === 200) {
         userInfo.value = response.data
-        console.log('✅ 用户信息获取成功:', response.data)
         return true
       } else {
-        throw new Error(response.msg || '获取用户信息失败')
+        throw new Error(response.msg || '????????')
       }
     } catch (error) {
-      console.error('❌ 获取用户信息失败:', error)
+      console.error('????????:', error)
       return false
     }
   }
 
-  /**
-   * 获取当前用户角色列表（调用 /me/roles，任何已登录用户均可用）
-   */
   const fetchUserRoles = async (): Promise<void> => {
     try {
       const res = await getMyRoles()
@@ -45,38 +35,30 @@ export const useUserStore = defineStore('user', () => {
         userRoles.value = res.data.map((r: any) => r.roleCode)
       }
     } catch (error) {
-      console.error('❌ 获取用户角色失败:', error)
+      console.error('????????:', error)
     }
   }
 
-  /**
-   * ✅ 更新用户信息 (局部更新)
-   */
   const updateUserInfo = (partialInfo: Partial<UserInfoVO>) => {
     if (userInfo.value) {
       userInfo.value = { ...userInfo.value, ...partialInfo }
     }
   }
 
-  /**
-   * ✅ 清除所有用户数据 (登出)
-   */
   const clearAll = () => {
     userInfo.value = null
     userRoles.value = []
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
   }
 
   return {
-    // 状态
     userInfo,
     userRoles,
     isLoggedIn,
     hasToken,
     hasStudentInfo,
 
-    // 方法
     fetchUserData,
     fetchUserRoles,
     updateUserInfo,

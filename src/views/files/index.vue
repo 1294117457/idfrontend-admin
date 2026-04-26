@@ -195,7 +195,7 @@ import {
   updateFile,
   getPreviewUrl,
   downloadFile
-} from '@/api/components/apiFile'
+} from '@/api/modules/apiFile'
 
 // ==================== 查询表单 ====================
 const queryForm = reactive<FileQueryDto & { fileExtension?: string }>({

@@ -137,7 +137,7 @@ import {
   deletePermission,
   type PermissionPO,
   type PermissionDTO
-} from '@/api/components/apiRBAC'
+} from '@/api/modules/apiRBAC'
 
 // ==================== 数据 ====================
 const permissionList = ref<PermissionPO[]>([])

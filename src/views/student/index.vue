@@ -3,8 +3,8 @@
   import { ElMessage } from 'element-plus'
   import { Download } from '@element-plus/icons-vue'
   // ✅ 确认导入正确
-  import { getStudentDataList, type StudentDataItem, type StudentQueryParams } from '@/api/components/apiStudent'
-  import { getStudentExportFields } from '@/api/components/apiUser'
+  import { getStudentDataList, type StudentDataItem, type StudentQueryParams } from '@/api/modules/apiStudent'
+  import { getStudentExportFields } from '@/api/modules/apiUser'
   import * as XLSX from 'xlsx'
 
   // 搜索相关

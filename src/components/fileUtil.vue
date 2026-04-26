@@ -133,7 +133,7 @@ import {
   getFilePreviewById, 
   downloadFileById,
   type ProofFileItem
-} from '@/api/components/apiScore'
+} from '@/api/modules/apiScore'
 
 // ✅ 文件项接口
 export interface FileItem {

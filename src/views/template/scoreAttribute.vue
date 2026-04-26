@@ -185,7 +185,7 @@ import {
   createAttribute,
   deleteAttribute,
   deleteAttributesByCode
-} from '@/api/components/apiAttribute'
+} from '@/api/modules/apiAttribute'
 
 const attributeList = ref<RuleAttribute[]>([])
 const groupDialogVisible = ref(false)

@@ -5,7 +5,7 @@ import { ref, nextTick, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { sentEmailCode, type RegisterItem, regesterRequest } from '@/api/components/apiLogin'
+import { sentEmailCode, type RegisterItem, regesterRequest } from '@/api/modules/apiLogin'
 
 const router = useRouter()
 const step = ref(1)

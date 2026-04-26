@@ -97,13 +97,13 @@ import { Loading } from '@element-plus/icons-vue'
 import {
   getUserCompleteInfo,
   type UserInfoVO
-} from '@/api/components/apiUser'
+} from '@/api/modules/apiUser'
 
 import {
   bindStudentInfo,
   updateStudentInfo,
   type StudentDTO
-} from '@/api/components/apiStudent'
+} from '@/api/modules/apiStudent'
 
 const loading = ref(true)
 const submitting = ref(false)

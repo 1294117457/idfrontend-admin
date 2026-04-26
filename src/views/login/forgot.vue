@@ -91,7 +91,7 @@
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
-import { sendResetCode, resetPassword, type ForgotPasswordRequest } from '@/api/components/apiLogin'
+import { sendResetCode, resetPassword, type ForgotPasswordRequest } from '@/api/modules/apiLogin'
 
 const router = useRouter()
 const submitting = ref(false)

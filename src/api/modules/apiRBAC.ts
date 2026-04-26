@@ -1,4 +1,4 @@
-import apiClient from '@/utils/http'
+import apiClient from '@common/utils/http'
 
 // ========== 通用响应接口 ==========
 export interface ApiResponse<T = any> {

@@ -1,4 +1,4 @@
-import apiClient from '@/utils/http'
+import apiClient from '@common/utils/http'
 const apiBaseUrl = import.meta.env.VITE_BASE_API
 
 // ==================== 类型定义 ====================

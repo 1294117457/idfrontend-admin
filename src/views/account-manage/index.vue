@@ -232,7 +232,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import * as XLSX from 'xlsx'
-import { getRoleList, type RolePO } from '@/api/components/apiRBAC'
+import { getRoleList, type RolePO } from '@/api/modules/apiRBAC'
 import {
   getUserListForAdmin,
   getUserRoles,
@@ -243,7 +243,7 @@ import {
   batchCreateUsers,
   type UserManageVO,
   type UserDTO
-} from '@/api/components/apiUser'
+} from '@/api/modules/apiUser'
 
 // 查询表单
 const queryForm = reactive({

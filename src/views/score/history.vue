@@ -248,7 +248,7 @@ import {
   revokeRecord, 
   type AuditRecord,
   type ProofFileItem
-} from '@/api/components/apiScore'
+} from '@/api/modules/apiScore'
 import FileUtil from '@/components/fileUtil.vue'
 
 // ==================== 基础状态 ====================

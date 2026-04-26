@@ -1,4 +1,4 @@
-import apiClient from '@/utils/http'
+import apiClient from '@common/utils/http'
 
 // ==================== 用户相关类型 ====================
 

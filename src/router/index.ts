@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { useUserStore } from '@/stores/profile'  // ✅ 导入 useUserStore
+import { useUserStore } from '@/stores/profile'
+import { STORAGE_KEYS } from '@common/constants/storage'
 import homeRoutes from './home'
 import loginRoutes from './login'
 
@@ -16,27 +16,45 @@ const router = createRouter({
 
 const PUBLIC_ROUTES = ['/login', '/register', '/forgot', '/']
 
-// ✅ 全局前置守卫 - 未登录跳转登录页，有角色限制的路由检查角色
-router.beforeEach(async (to, from, next) => {
-  const token = localStorage.getItem('accessToken')
-  if (!token && !PUBLIC_ROUTES.includes(to.path)) {
-    return next('/login')
+router.beforeEach(async (to) => {
+  const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
+  const isPublicRoute = PUBLIC_ROUTES.includes(to.path)
+
+  if (isPublicRoute) {
+    if (token && to.path === '/login') {
+      return '/home/index'
+    }
+    return true
   }
 
-  // 检查当前路由链上是否有 requiresRoles
-  const requiredRoles = to.matched.flatMap(r => (r.meta?.requiresRoles as string[]) || [])
-  if (requiredRoles.length > 0 && token) {
-    const userStore = useUserStore()
-    if (userStore.userRoles.length === 0) {
-      await userStore.fetchUserRoles()
+  if (!token) {
+    return '/login'
+  }
+
+  const userStore = useUserStore()
+
+  if (!userStore.userInfo) {
+    try {
+      await userStore.fetchUserData()
+    } catch {
+      userStore.clearAll()
+      return '/login'
     }
+  }
+
+  if (userStore.userRoles.length === 0) {
+    await userStore.fetchUserRoles()
+  }
+
+  const requiredRoles = to.matched.flatMap(r => (r.meta?.requiresRoles as string[]) || [])
+  if (requiredRoles.length > 0) {
     const hasRole = requiredRoles.some(r => userStore.userRoles.includes(r))
     if (!hasRole) {
-      return next('/home/index')
+      return '/home/index'
     }
   }
 
-  next()
+  return true
 })
 
 export default router

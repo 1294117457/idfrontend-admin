@@ -258,8 +258,8 @@
   
   <script setup lang="ts">
   import { ref, reactive, computed, nextTick, watch, onMounted, onUnmounted } from 'vue'
-  import { agentStreamChat, agentResumeStream } from '@/api/components/apiAIagent'
-  import type { AgentStreamCallbacks } from '@/api/components/apiAIagent'
+  import { agentStreamChat, agentResumeStream } from '@/api/modules/apiAIagent'
+  import type { AgentStreamCallbacks } from '@/api/modules/apiAIagent'
   import { ElMessage } from 'element-plus'
   import { marked } from 'marked'
   import DOMPurify from 'dompurify'
