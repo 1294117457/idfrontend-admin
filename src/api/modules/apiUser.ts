@@ -132,14 +132,14 @@ export const getUserListForAdmin = async (params: UserManageQueryParams) => {
  * ✅ 获取指定用户的角色列表
  */
 export const getUserRoles = async (userId: number) => {
-  return await apiClient.get(`/api/user/${userId}/roles`)
+  return await apiClient.get(`/api/auth/role/${userId}/roles`)
 }
 
 /**
  * ✅ 为用户分配角色（覆盖式）
  */
 export const assignUserRoles = async (userId: number, roleIds: number[]) => {
-  return await apiClient.post(`/api/user/${userId}/roles`, { roleIds })
+  return await apiClient.post('/api/auth/role/assign', { userId, roleIds })
 }
 
 /**
