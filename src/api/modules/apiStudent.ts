@@ -54,68 +54,33 @@ export interface StudentQueryParams {
  * 绑定学生信息（无需验证码）
  */
 export const bindStudentInfo = async (data: StudentDTO) => {
-  const response = await apiClient.post<{
-    code: number
-    msg: string
-    data: BindStudentVO
-  }>('/api/user/student/bind', data)
-
-  return response.data
+  return await apiClient.post('/api/user/student/bind', data)
 }
 
 /**
  * 获取学生基本信息
  */
 export const getStudentBasicInfo = async () => {
-  const response = await apiClient.get<{
-    code: number
-    msg: string
-    data: StudentDTO
-  }>('/api/user/student/info')
-
-  return response.data
+  return await apiClient.get('/api/user/student/info')
 }
 
 /**
  * 更新学生信息
  */
 export const updateStudentInfo = async (data: StudentDTO) => {
-  const response = await apiClient.put<{
-    code: number
-    msg: string
-    data: string
-  }>('/api/user/student/info', data)
-
-  return response.data
+  return await apiClient.put('/api/user/student/info', data)
 }
 
 /**
  * 确认学生信息
  */
 export const confirmStudentInfo = async () => {
-  const response = await apiClient.post<{
-    code: number
-    msg: string
-    data: string
-  }>('/api/user/student/confirm')
-
-  return response.data
+  return await apiClient.post('/api/user/student/confirm')
 }
 
 /**
  * 管理员分页查询学生数据
  */
 export const getStudentDataList = async (params: StudentQueryParams) => {
-  const response = await apiClient.get<{
-    code: number
-    msg: string
-    data: {
-      list: StudentDataItem[]
-      total: number
-      pageNum: number
-      pageSize: number
-    }
-  }>('/api/user/student/list', { params })
-
-  return response.data
+  return await apiClient.get('/api/user/student/list', { params })
 }

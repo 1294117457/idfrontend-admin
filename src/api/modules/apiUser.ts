@@ -16,26 +16,14 @@ export interface UserDTO {
  * ✅ 创建用户
  */
 export const createUser = async (data: UserDTO) => {
-  const response = await apiClient.post<{
-    code: number
-    msg: string
-    data: any
-  }>('/api/user/admin/create', data)
-  
-  return response.data
+  return await apiClient.post('/api/user/admin/create', data)
 }
 
 /**
  * ✅ 删除用户
  */
 export const deleteUser = async (userId: number) => {
-  const response = await apiClient.delete<{
-    code: number
-    msg: string
-    data: null
-  }>(`/api/user/admin/${userId}`)
-  
-  return response.data
+  return await apiClient.delete(`/api/user/admin/${userId}`)
 }
 export interface UserInfoVO {
   // 用户信息
@@ -64,39 +52,21 @@ export interface UserInfoVO {
  * 获取用户基本信息
  */
 export const getUserBasicInfo = async () => {
-  const response = await apiClient.get<{
-    code: number
-    msg: string
-    data: UserDTO
-  }>('/api/user/profile')
-  
-  return response.data
+  return await apiClient.get('/api/user/profile')
 }
 
 /**
  * 获取用户完整信息（包含学生信息）
  */
 export const getUserCompleteInfo = async () => {
-  const response = await apiClient.get<{
-    code: number
-    msg: string
-    data: UserInfoVO
-  }>('/api/user/complete-info')
-  
-  return response.data
+  return await apiClient.get('/api/user/complete-info')
 }
 
 /**
  * 更新用户基本信息
  */
 export const updateUserBasicInfo = async (data: Partial<UserDTO>) => {
-  const response = await apiClient.put<{
-    code: number
-    msg: string
-    data: string
-  }>('/api/user/profile', data)
-  
-  return response.data
+  return await apiClient.put('/api/user/profile', data)
 }
 
 /**
@@ -106,15 +76,9 @@ export const uploadAvatar = async (file: File) => {
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await apiClient.post<{
-    code: number
-    msg: string
-    data: string
-  }>('/api/file/avatar', formData, {
+  return await apiClient.post('/api/file/avatar', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
-
-  return response.data
 }
 
 /**
@@ -161,91 +125,47 @@ export interface UserManageVO {
  * ✅ 管理员查询用户列表（显示所有用户，学生信息可选）
  */
 export const getUserListForAdmin = async (params: UserManageQueryParams) => {
-  const response = await apiClient.get<{
-    code: number
-    msg: string
-    data: {
-      list: UserManageVO[]
-      total: number
-      pageNum: number
-      pageSize: number
-    }
-  }>('/api/user/admin/list', { params })
-  
-  return response.data
+  return await apiClient.get('/api/user/admin/list', { params })
 }
 
 /**
  * ✅ 获取指定用户的角色列表
  */
 export const getUserRoles = async (userId: number) => {
-  const response = await apiClient.get<{
-    code: number
-    msg: string
-    data: RoleVO[]
-  }>(`/api/user/${userId}/roles`)
-  
-  return response.data
+  return await apiClient.get(`/api/user/${userId}/roles`)
 }
 
 /**
  * ✅ 为用户分配角色（覆盖式）
  */
 export const assignUserRoles = async (userId: number, roleIds: number[]) => {
-  const response = await apiClient.post<{
-    code: number
-    msg: string
-    data: null
-  }>(`/api/user/${userId}/roles`, { roleIds })
-
-  return response.data
+  return await apiClient.post(`/api/user/${userId}/roles`, { roleIds })
 }
 
 /**
  * ✅ 禁用或启用用户
  */
 export const updateUserStatus = async (userId: number, status: 'active' | 'inactive') => {
-  const response = await apiClient.put<{
-    code: number
-    msg: string
-    data: null
-  }>(`/api/user/admin/${userId}/status`, { status })
-
-  return response.data
+  return await apiClient.put(`/api/user/admin/${userId}/status`, { status })
 }
 
 /**
  * 获取当前登录用户的角色列表（无需 admin 权限）
  */
 export const getMyRoles = async () => {
-  const response = await apiClient.get<{
-    code: number
-    msg: string
-    data: RoleVO[]
-  }>('/api/user/me/roles')
-  return response.data
+  return await apiClient.get('/api/user/me/roles')
 }
 
 /**
  * 批量创建用户
  */
 export const batchCreateUsers = async (usernames: string[]) => {
-  const response = await apiClient.post<{
-    code: number
-    msg: string
-    data: { success: string[]; failed: string[]; successCount: number; failedCount: number }
-  }>('/api/user/admin/batch-create', { usernames })
-  return response.data
+  return await apiClient.post('/api/user/admin/batch-create', { usernames })
 }
 
 /**
  * 获取学生导出字段列表（动态）
  */
 export const getStudentExportFields = async () => {
-  const response = await apiClient.get<{
-    code: number
-    msg: string
-    data: { key: string; label: string }[]
-  }>('/api/user/student/export-fields')
-  return response.data
+  return await apiClient.get('/api/user/student/export-fields')
 }

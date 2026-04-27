@@ -7,8 +7,7 @@ export interface EmailItem {
 }
 
 export const sendEmailCode = async (email: string) => {
-  const response = await apiClient.post<{code:number;msg:string;data:EmailItem}>('/api/userinfo/sendEmailCode', { email });
-  return response.data;
+  return await apiClient.post('/api/userinfo/sendEmailCode', { email });
 };
 
 // 绑定学生信息===
@@ -27,8 +26,7 @@ export interface BindItem{
 }
 
 export const bindStudentInfo = async (studentData: StudentItem) => {
-  const response = await apiClient.post<{code:number;msg:string;data:BindItem}>('/api/userinfo/bindStudentInfo', studentData);
-  return response.data;
+  return await apiClient.post('/api/userinfo/bindStudentInfo', studentData);
 };
 
 // 查询用户完整信息===
@@ -57,8 +55,7 @@ export interface UserInfoItem {
 }
 
 export const getUserInfo = async () => {
-  const response = await apiClient.get<{code:number;msg:string;data:UserInfoItem}>('/api/userinfo/getUserInfo');
-  return response.data;
+  return await apiClient.get('/api/userinfo/getUserInfo');
 };
 
 // 更新学生信息(需要验证码)===
@@ -70,6 +67,5 @@ export interface UpdateStudentItem {
 }
 
 export const updateStudentInfo = async (updateData: UpdateStudentItem) => {
-  const response = await apiClient.put<{code:number;msg:string;data:string}>('/api/userinfo/updateStudentInfo', updateData);
-  return response.data;
+  return await apiClient.put('/api/userinfo/updateStudentInfo', updateData);
 };

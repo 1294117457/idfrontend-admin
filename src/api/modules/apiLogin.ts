@@ -59,30 +59,15 @@ export const refreshToken = async (refreshToken: string): Promise<TokenResponse>
 
 // ✅ 登录
 export const loginPost = async (logdto: LoginDto): Promise<LoginResType> => {
-  try {
-    const response = await apiClient.post<LoginResType>('/api/authserver/login', logdto);
-    return response.data;
-  } catch (error) {
-    throw new Error('登录请求失败,请稍后重试');
-  }
+  return await apiClient.post('/api/authserver/login', logdto);
 };
 // ✅ 新增: 管理员端登录
 export const adminLoginPost = async (logdto: LoginDto): Promise<LoginResType> => {
-  try {
-    const response = await apiClient.post<LoginResType>('/api/authserver/admin/login', logdto);
-    return response.data;
-  } catch (error) {
-    throw new Error('登录请求失败,请稍后重试');
-  }
+  return await apiClient.post('/api/authserver/admin/login', logdto);
 };
 // ✅ 发送邮箱验证码
 export const sentEmailCode = async (email: string) => {
-  try {
-    const response = await apiClient.post<resType>('/api/authserver/sendEmailCode', { email });
-    return response.data;
-  } catch (error) {
-    throw new Error('邮箱验证码请求失败,请稍后重试');
-  }
+  return await apiClient.post('/api/authserver/sendEmailCode', { email });
 }
 
 // ✅ 注册
@@ -93,12 +78,7 @@ export interface RegisterItem {
 }
 
 export const regesterRequest = async (reItem: RegisterItem) => {
-  try {
-    const response = await apiClient.post<resType>('/api/authserver/register', reItem);
-    return response.data;
-  } catch (error) {
-    throw new Error('注册请求失败,请稍后重试');
-  }
+  return await apiClient.post('/api/authserver/register', reItem);
 }
 
 // 找回密码接口
@@ -110,21 +90,11 @@ export interface ForgotPasswordRequest {
 }
 
 export const sendResetCode = async (email: string) => {
-  try {
-    const response = await apiClient.post<resType>('/api/authserver/sendResetCode', { email });
-    return response.data;
-  } catch (error) {
-    throw new Error('发送重置验证码失败,请稍后重试');
-  }
+  return await apiClient.post('/api/authserver/sendResetCode', { email });
 }
 
 export const resetPassword = async (data: ForgotPasswordRequest) => {
-  try {
-    const response = await apiClient.post<resType>('/api/authserver/reset-password', data);
-    return response.data;
-  } catch (error) {
-    throw new Error('重置密码失败,请稍后重试');
-  }
+  return await apiClient.post('/api/authserver/reset-password', data);
 }
 // 获取验证码图片
 // ✅ 验证码相关接口

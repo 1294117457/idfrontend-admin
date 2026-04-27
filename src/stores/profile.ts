@@ -19,18 +19,13 @@ export const useUserStore = defineStore('user', () => {
         getUserCompleteInfo(),
         getUserBasicInfo(),
       ])
-      if (completeRes.code === 200) {
-        userInfo.value = {
-          ...completeRes.data,
-          avatar: basicRes.code === 200 ? basicRes.data.avatar : completeRes.data.avatar,
-          phone: completeRes.data.phone || (basicRes.code === 200 ? basicRes.data.phone : undefined),
-        }
-        return true
-      } else {
-        throw new Error(completeRes.msg || '????????')
+      userInfo.value = {
+        ...completeRes.data,
+        avatar: basicRes.data.avatar || completeRes.data.avatar,
+        phone: completeRes.data.phone || basicRes.data.phone,
       }
-    } catch (error) {
-      console.error('????????:', error)
+      return true
+    } catch {
       return false
     }
   }
@@ -38,11 +33,9 @@ export const useUserStore = defineStore('user', () => {
   const fetchUserRoles = async (): Promise<void> => {
     try {
       const res = await getMyRoles()
-      if (res.code === 200) {
-        userRoles.value = res.data.map((r: any) => r.roleCode)
-      }
-    } catch (error) {
-      console.error('????????:', error)
+      userRoles.value = res.data.map((r: any) => r.roleCode)
+    } catch {
+      // interceptor shows error
     }
   }
 

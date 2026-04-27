@@ -34,9 +34,8 @@ router.beforeEach(async (to) => {
   const userStore = useUserStore()
 
   if (!userStore.userInfo) {
-    try {
-      await userStore.fetchUserData()
-    } catch {
+    const success = await userStore.fetchUserData()
+    if (!success) {
       userStore.clearAll()
       return '/login'
     }

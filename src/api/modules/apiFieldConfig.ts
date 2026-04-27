@@ -28,80 +28,52 @@ export interface FieldSubcategory {
 // ==================== Field Config ====================
 
 export const getFieldConfigList = async (type?: 'SCORE' | 'DEMAND') => {
-  const response = await apiClient.get<{ code: number; msg: string; data: FieldConfig[] }>(
+  return await apiClient.get(
     '/api/field-config/list',
     { params: type ? { type } : {} }
   )
-  return response.data
 }
 
 export const getAllFieldConfigs = async () => {
-  const response = await apiClient.get<{ code: number; msg: string; data: FieldConfig[] }>(
-    '/api/field-config/list/all'
-  )
-  return response.data
+  return await apiClient.get('/api/field-config/list/all')
 }
 
 export const getScoreFieldConfigs = async () => {
-  const response = await apiClient.get<{ code: number; msg: string; data: FieldConfig[] }>(
+  return await apiClient.get(
     '/api/field-config/list',
     { params: { type: 'SCORE' } }
   )
-  return response.data
 }
 
 export const createFieldConfig = async (data: Omit<FieldConfig, 'id'>) => {
-  const response = await apiClient.post<{ code: number; msg: string; data: number }>(
-    '/api/field-config',
-    data
-  )
-  return response.data
+  return await apiClient.post('/api/field-config', data)
 }
 
 export const updateFieldConfig = async (id: number, data: Partial<FieldConfig>) => {
-  const response = await apiClient.put<{ code: number; msg: string; data: null }>(
-    `/api/field-config/${id}`,
-    data
-  )
-  return response.data
+  return await apiClient.put(`/api/field-config/${id}`, data)
 }
 
 export const deleteFieldConfig = async (id: number) => {
-  const response = await apiClient.delete<{ code: number; msg: string; data: null }>(
-    `/api/field-config/${id}`
-  )
-  return response.data
+  return await apiClient.delete(`/api/field-config/${id}`)
 }
 
 // ==================== Field Subcategory ====================
 
 export const getSubcategoryList = async (fieldId?: number) => {
-  const response = await apiClient.get<{ code: number; msg: string; data: FieldSubcategory[] }>(
+  return await apiClient.get(
     '/api/field-config/subcategory/list',
     { params: fieldId ? { fieldId } : {} }
   )
-  return response.data
 }
 
 export const createSubcategory = async (data: Omit<FieldSubcategory, 'id'>) => {
-  const response = await apiClient.post<{ code: number; msg: string; data: number }>(
-    '/api/field-config/subcategory',
-    data
-  )
-  return response.data
+  return await apiClient.post('/api/field-config/subcategory', data)
 }
 
 export const updateSubcategory = async (id: number, data: Partial<FieldSubcategory>) => {
-  const response = await apiClient.put<{ code: number; msg: string; data: null }>(
-    `/api/field-config/subcategory/${id}`,
-    data
-  )
-  return response.data
+  return await apiClient.put(`/api/field-config/subcategory/${id}`, data)
 }
 
 export const deleteSubcategory = async (id: number) => {
-  const response = await apiClient.delete<{ code: number; msg: string; data: null }>(
-    `/api/field-config/subcategory/${id}`
-  )
-  return response.data
+  return await apiClient.delete(`/api/field-config/subcategory/${id}`)
 }

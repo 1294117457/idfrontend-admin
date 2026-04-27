@@ -17,8 +17,7 @@ export interface KnowledgeFile {
 
 /** 发送消息 */
 export const sendMessage = async (message: string): Promise<ApiResponse<string>> => {
-  const response = await apiClient.post(`${apiBaseUrl}/api/chat/send`, { message }, { timeout: 120000 })
-  return response.data
+  return await apiClient.post(`${apiBaseUrl}/api/chat/send`, { message }, { timeout: 120000 })
 }
 
 /**
@@ -87,8 +86,7 @@ export const sendMessageStream = (
 
 /** 清除对话历史 */
 export const clearConversation = async (): Promise<ApiResponse<void>> => {
-  const response = await apiClient.post(`${apiBaseUrl}/api/chat/clear`)
-  return response.data
+  return await apiClient.post(`${apiBaseUrl}/api/chat/clear`)
 }
 
 /** 上传结果 */
@@ -108,31 +106,27 @@ export interface KnowledgeStats {
 
 /** 获取知识库文件列表 */
 export const listKnowledge = async (): Promise<ApiResponse<KnowledgeFile[]>> => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/knowledge/list`)
-  return response.data
+  return await apiClient.get(`${apiBaseUrl}/api/knowledge/list`)
 }
 
 /** 获取知识库统计（文件列表 + 分块总数） */
 export const getKnowledgeStats = async (): Promise<ApiResponse<KnowledgeStats>> => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/knowledge/stats`)
-  return response.data
+  return await apiClient.get(`${apiBaseUrl}/api/knowledge/stats`)
 }
 
 /** 上传知识库文件 */
 export const uploadKnowledge = async (file: File): Promise<ApiResponse<UploadResult>> => {
   const formData = new FormData()
   formData.append('file', file)
-  const response = await apiClient.post(`${apiBaseUrl}/api/knowledge/upload`, formData, {
+  return await apiClient.post(`${apiBaseUrl}/api/knowledge/upload`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     timeout: 300000,
   })
-  return response.data
 }
 
 /** 删除知识库文件 */
 export const deleteKnowledge = async (sourceFile: string): Promise<ApiResponse<void>> => {
-  const response = await apiClient.delete(`${apiBaseUrl}/api/knowledge/${encodeURIComponent(sourceFile)}`)
-  return response.data
+  return await apiClient.delete(`${apiBaseUrl}/api/knowledge/${encodeURIComponent(sourceFile)}`)
 }
 
 /** AI 配置 */
@@ -156,14 +150,12 @@ export interface AIConfigUpdate {
 
 /** 获取 AI 配置（apiKey 掩码显示） */
 export const getAIConfig = async (): Promise<ApiResponse<AIConfig>> => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/ai-config`)
-  return response.data
+  return await apiClient.get(`${apiBaseUrl}/api/ai-config`)
 }
 
 /** 更新 AI 配置 */
 export const updateAIConfig = async (config: AIConfigUpdate): Promise<ApiResponse<void>> => {
-  const response = await apiClient.put(`${apiBaseUrl}/api/ai-config`, config)
-  return response.data
+  return await apiClient.put(`${apiBaseUrl}/api/ai-config`, config)
 }
 
 // ────────────────────────────────────────────────────────────
