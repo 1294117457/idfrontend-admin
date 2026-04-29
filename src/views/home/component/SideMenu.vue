@@ -60,9 +60,7 @@ const activePath = ref(route.path)
 const COLLAPSE_BREAKPOINT = 1024
 
 const checkCollapse = () => {
-  if (window.innerWidth < COLLAPSE_BREAKPOINT) {
-    isCollapse.value = true
-  }
+  isCollapse.value = window.innerWidth < COLLAPSE_BREAKPOINT
 }
 
 onMounted(async () => {
@@ -87,7 +85,7 @@ const sortedMenuRoutes = computed(() => {
       if (!required || required.length === 0) return true
       return required.some((r) => userStore.userRoles.includes(r))
     })
-    .sort((a, b) => (a.meta?.sort ?? Infinity) - (b.meta?.sort ?? Infinity))
+    .sort((a, b) => Number(a.meta?.sort ?? Infinity) - Number(b.meta?.sort ?? Infinity))
 })
 
 watch(
@@ -115,5 +113,28 @@ const handleClose = (key: string, keyPath: string[]) => {}
   overflow-y: auto;
   flex-shrink: 0;
   transition: width 0.3s ease;
+  border-right: 1px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.96);
+  user-select: none;
+}
+
+.side-menu :deep(.el-menu-item),
+.side-menu :deep(.el-sub-menu__title) {
+  margin: 0.2rem 0.45rem;
+  border-radius: 10px;
+}
+
+.side-menu :deep(.el-menu-item.is-active) {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+@media (max-width: 768px) {
+  .side-menu {
+    position: fixed;
+    left: 0;
+    z-index: 45;
+    box-shadow: 8px 0 24px rgba(15, 23, 42, 0.08);
+  }
 }
 </style>

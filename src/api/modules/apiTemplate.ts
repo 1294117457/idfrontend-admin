@@ -27,26 +27,21 @@ export interface BonusTemplate {
 // ==================== 模板接口 ====================
 
 export const getTemplateList = async () => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/bonus-template/list`)
-  return response.data
+  return await apiClient.get(`${apiBaseUrl}/api/bonus-template/list`)
 }
 
 export const createTemplate = async (data: BonusTemplate) => {
-  const response = await apiClient.post(`${apiBaseUrl}/api/bonus-template/create`, data)
-  return response.data
+  return await apiClient.post(`${apiBaseUrl}/api/bonus-template/create`, data)
 }
 
 export const updateTemplate = async (id: number, data: BonusTemplate) => {
-  const response = await apiClient.put(`${apiBaseUrl}/api/bonus-template/${id}`, data)
-  return response.data
+  return await apiClient.put(`${apiBaseUrl}/api/bonus-template/${id}`, data)
 }
 
 export const deleteTemplate = async (id: number) => {
-  const response = await apiClient.delete(`${apiBaseUrl}/api/bonus-template/${id}`)
-  return response.data
+  return await apiClient.delete(`${apiBaseUrl}/api/bonus-template/${id}`)
 }
 
 export const getTemplateDetail = async (id: number) => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/bonus-template/${id}`)
-  return response.data
+  return await apiClient.get(`${apiBaseUrl}/api/bonus-template/${id}`)
 }

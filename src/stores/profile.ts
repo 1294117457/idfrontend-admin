@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { getUserCompleteInfo, getMyRoles, type UserInfoVO } from '@/api/modules/apiUser'
+import { getUserBasicInfo, getUserCompleteInfo, getMyRoles, type UserInfoVO } from '@/api/modules/apiUser'
 import { STORAGE_KEYS } from '@common/constants/storage'
 
 export const useUserStore = defineStore('user', () => {
@@ -15,15 +15,17 @@ export const useUserStore = defineStore('user', () => {
 
   const fetchUserData = async (): Promise<boolean> => {
     try {
-      const response = await getUserCompleteInfo()
-      if (response.code === 200) {
-        userInfo.value = response.data
-        return true
-      } else {
-        throw new Error(response.msg || '????????')
+      const [completeRes, basicRes] = await Promise.all([
+        getUserCompleteInfo(),
+        getUserBasicInfo(),
+      ])
+      userInfo.value = {
+        ...completeRes.data,
+        avatar: basicRes.data.avatar || completeRes.data.avatar,
+        phone: completeRes.data.phone || basicRes.data.phone,
       }
-    } catch (error) {
-      console.error('????????:', error)
+      return true
+    } catch {
       return false
     }
   }
@@ -31,11 +33,9 @@ export const useUserStore = defineStore('user', () => {
   const fetchUserRoles = async (): Promise<void> => {
     try {
       const res = await getMyRoles()
-      if (res.code === 200) {
-        userRoles.value = res.data.map((r: any) => r.roleCode)
-      }
-    } catch (error) {
-      console.error('????????:', error)
+      userRoles.value = res.data.map((r: any) => r.roleCode)
+    } catch {
+      // interceptor shows error
     }
   }
 

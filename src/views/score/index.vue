@@ -354,7 +354,7 @@
   </script>
   
   <template>
-    <div class="min-h-screen flex flex-col gap-5 p-4">
+    <div class="admin-page flex flex-col gap-5">
       <el-card>
         <div class="flex items-center">
           <h4 class="text-[20px] font-bold text-gray-800">分数审核</h4>
@@ -362,20 +362,20 @@
         
         <!-- 搜索区域 (保持不变) -->
         <el-row justify="space-between" align="bottom" class="filter mb-4">
-          <el-row align="bottom" :gutter="20" style="width: 85%">
-            <el-col :span="5">
+          <el-row align="bottom" :gutter="16" class="filter-grid">
+            <el-col :xs="24" :sm="12" :md="6">
               <label>学号:</label>
               <el-input v-model="searchStudentId" placeholder="请输入学号" clearable />
             </el-col>
-            <el-col :span="5">
+            <el-col :xs="24" :sm="12" :md="6">
               <label>姓名:</label>
               <el-input v-model="searchStudentName" placeholder="请输入姓名" clearable />
             </el-col>
-            <el-col :span="5">
+            <el-col :xs="24" :sm="12" :md="6">
               <label>专业:</label>
               <el-input v-model="searchMajor" placeholder="请输入专业" clearable />
             </el-col>
-            <el-col :span="4">
+            <el-col :xs="24" :sm="12" :md="6" class="filter-actions">
               <el-button type="primary" @click="handleFilter">筛选</el-button>
               <el-button @click="handleReset">重置</el-button>
             </el-col>
@@ -626,5 +626,20 @@
   <style scoped>
   .filter {
     margin-top: 20px;
+  }
+
+  .filter-grid {
+    width: 100%;
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .filter-actions :deep(.el-button) {
+      flex: 1;
+    }
   }
   </style>

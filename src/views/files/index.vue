@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col gap-5 p-4">
+  <div class="admin-page flex flex-col gap-5">
     <el-card>
       <div class="flex items-center mb-4">
         <h4 class="text-[20px] font-bold text-gray-800">公共文件管理</h4>
@@ -8,13 +8,13 @@
       <!-- ✅ 查询表单 -->
       <el-row>
         <el-col>
-          <el-form :inline="true" :model="queryForm">
+          <el-form :inline="true" :model="queryForm" class="file-query-form">
             <el-form-item label="文件名">
               <el-input 
                 v-model="queryForm.fileName" 
                 placeholder="输入文件名" 
                 clearable 
-                style="width: 150px;" 
+                class="query-control"
               />
             </el-form-item>
             
@@ -23,7 +23,7 @@
                 v-model="queryForm.fileExtension" 
                 placeholder="选择类型" 
                 clearable 
-                style="width: 120px;"
+                class="query-control query-control-sm"
               >
                 <el-option label="全部" value="" />
                 <el-option label="PDF" value=".pdf" />
@@ -41,7 +41,7 @@
                 placeholder="选择开始时间"
                 format="YYYY-MM-DD HH:mm:ss"
                 value-format="YYYY-MM-DDTHH:mm:ss"
-                style="width: 180px;"
+                class="query-control query-control-lg"
               />
             </el-form-item>
             
@@ -52,7 +52,7 @@
                 placeholder="选择结束时间"
                 format="YYYY-MM-DD HH:mm:ss"
                 value-format="YYYY-MM-DDTHH:mm:ss"
-                style="width: 180px;"
+                class="query-control query-control-lg"
               />
             </el-form-item>
             
@@ -505,11 +505,42 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.file-query-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0 0.75rem;
+}
+
+.query-control {
+  width: 160px;
+}
+
+.query-control-sm {
+  width: 130px;
+}
+
+.query-control-lg {
+  width: 190px;
+}
+
 :deep(.el-table) {
   font-size: 14px;
 }
 
 :deep(.el-button + .el-button) {
   margin-left: 0;
+}
+
+@media (max-width: 768px) {
+  .file-query-form {
+    display: block;
+  }
+
+  .query-control,
+  .query-control-sm,
+  .query-control-lg {
+    width: 100%;
+  }
 }
 </style>

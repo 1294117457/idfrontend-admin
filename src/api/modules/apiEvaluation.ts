@@ -1,4 +1,8 @@
 import apiClient from '@common/utils/http'
+import axios from 'axios'
+
+const apiBaseUrl = import.meta.env.VITE_BASE_API
+
 // 分页查询参数
 export interface EvaluationQueryParams {
     studentId?: string
@@ -26,33 +30,23 @@ export interface EvaluationQueryParams {
   
   // 教师端 - 分页查询申请列表
   export const getApplicationList = async (params: EvaluationQueryParams) => {
-    const response = await apiClient.get<{
-      code: number
-      msg: string
-      data: PageResult<EvaluationApplication>
-    }>('/api/evaluation/list', { params })
-    
-    return response.data
+    return await apiClient.get('/api/evaluation/list', { params })
   }
   
   // 教师端 - 审批申请
   export const reviewApplication = async (data: ReviewRequest) => {
-    const response = await apiClient.post<{
-      code: number
-      msg: string
-      data: string
-    }>('/api/evaluation/review', data)
-    
-    return response.data
+    return await apiClient.post('/api/evaluation/review', data)
   }
   
   // 下载附件
   export const downloadAttachment = async (applicationId: number, objectName: string) => {
-    const response = await apiClient.get(
-      `/api/evaluation/download/${applicationId}`,
+    const token = localStorage.getItem('accessToken')
+    const response = await axios.get(
+      `${apiBaseUrl}/api/evaluation/download/${applicationId}`,
       {
         params: { objectName },
-        responseType: 'blob'
+        responseType: 'blob',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     )
     

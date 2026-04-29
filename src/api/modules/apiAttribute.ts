@@ -61,33 +61,27 @@ export interface AttributeTreeNode {
 // ==================== API 请求 ====================
 
 export const getAllAttributes = async () => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/rule-attribute/list`)
-  return response.data
+  return await apiClient.get(`${apiBaseUrl}/api/rule-attribute/list`)
 }
 
 export const getAttributesByType = async (type: 'CONDITION' | 'TRANSFORM') => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/rule-attribute/list-by-type/${type}`)
-  return response.data
+  return await apiClient.get(`${apiBaseUrl}/api/rule-attribute/list-by-type/${type}`)
 }
 
 export const getAttributesByCode = async (code: string) => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/rule-attribute/list-by-code/${code}`)
-  return response.data
+  return await apiClient.get(`${apiBaseUrl}/api/rule-attribute/list-by-code/${code}`)
 }
 
 export const createAttribute = async (data: RuleAttribute) => {
-  const response = await apiClient.post(`${apiBaseUrl}/api/rule-attribute/create`, data)
-  return response.data
+  return await apiClient.post(`${apiBaseUrl}/api/rule-attribute/create`, data)
 }
 
 export const updateAttribute = async (id: number, data: RuleAttribute) => {
-  const response = await apiClient.put(`${apiBaseUrl}/api/rule-attribute/${id}`, data)
-  return response.data
+  return await apiClient.put(`${apiBaseUrl}/api/rule-attribute/${id}`, data)
 }
 
 export const deleteAttribute = async (id: number) => {
-  const response = await apiClient.delete(`${apiBaseUrl}/api/rule-attribute/${id}`)
-  return response.data
+  return await apiClient.delete(`${apiBaseUrl}/api/rule-attribute/${id}`)
 }
 
 export const deleteAttributesByCode = async (code: string) => {

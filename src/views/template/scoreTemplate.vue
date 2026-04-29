@@ -1,13 +1,13 @@
 <!-- filepath: d:\XMU\3UP\交互设计\codeGithub\idfrontend-admin\src\views\template\scoreTemplate.vue -->
 <template>
-  <div class="p-4">
+  <div class="admin-page">
     <el-card>
-      <div class="flex justify-between mb-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h4 class="text-xl font-bold">加分项模板管理</h4>
         <el-button type="primary" @click="openDialog()">创建模板</el-button>
       </div>
       
-      <el-table :data="templateList" border>
+      <el-table :data="templateList" border class="admin-table">
         <el-table-column prop="templateName" label="模板名称" />
         <el-table-column label="模板类型" width="120">
           <template #default="{ row }">
@@ -42,7 +42,8 @@
     <el-dialog 
       v-model="dialogVisible" 
       :title="isEdit ? '编辑模板' : '创建模板'" 
-      width="1400px"
+      width="min(1400px, 96vw)"
+      class="template-dialog"
     >
       <!-- 模板基本信息 -->
       <el-card shadow="never" class="mb-4">
@@ -99,7 +100,7 @@
                     v-model="formData.inputUnit" 
                     :disabled="formData.templateType === 'CONDITION'"
                     :placeholder="formData.templateType === 'CONDITION' ? '条件模板默认为分' : '如: GPA、小时、次数'"
-                    class="w-1/3"
+                    class="unit-input"
                   />
                   <span v-if="formData.templateType === 'CONDITION'" class="text-xs text-gray-500 ml-2">
                     条件模板固定使用"分"作为单位
@@ -126,7 +127,7 @@
           </div>
         </template>
 
-        <el-table :data="formData.rules" border class="rule-table">
+        <el-table :data="formData.rules" border class="rule-table admin-table">
           <el-table-column label="序号" width="60" align="center">
             <template #default="{ $index }">
               <span class="font-bold">{{ $index + 1 }}</span>
@@ -609,6 +610,19 @@ onMounted(() => {
   margin-top: 16px;
 }
 
+.admin-table {
+  width: 100%;
+}
+
+.unit-input {
+  width: min(360px, 100%);
+}
+
+.template-dialog :deep(.el-dialog__body) {
+  max-height: calc(100dvh - 180px);
+  overflow-y: auto;
+}
+
 .rule-table :deep(.el-table__body-wrapper) {
   min-height: 200px;
 }
@@ -621,5 +635,16 @@ onMounted(() => {
 
 .font-bold {
   font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .template-dialog :deep(.el-dialog__body) {
+    max-height: calc(100dvh - 140px);
+    padding: 12px;
+  }
+
+  :deep(.el-form-item) {
+    margin-bottom: 14px;
+  }
 }
 </style>

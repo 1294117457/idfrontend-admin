@@ -1,4 +1,5 @@
 import apiClient from '@common/utils/http'
+import axios from 'axios'
 const apiBaseUrl = import.meta.env.VITE_BASE_API
 
 // ========== 类型定义 ==========
@@ -99,33 +100,30 @@ export interface ApiResponse<T = any> {
  * ✅ 根据申请ID获取所有证明材料
  */
 export const getApplicationProofs = async (applicationId: number): Promise<ApiResponse<{ proofs: ProofItem[] }>> => {
-  const response = await apiClient.get<ApiResponse<{ proofs: ProofItem[] }>>(
+  return await apiClient.get(
     `${apiBaseUrl}/api/proof/list/${applicationId}`  
   )
-  return response.data
 }
 /**
  * ✅ 审核证明材料 - 通过
  */
 export const approveProof = async (proofId: number, comment?: string): Promise<ApiResponse<null>> => {
-  const response = await apiClient.post<ApiResponse<null>>(
+  return await apiClient.post(
     `${apiBaseUrl}/api/proof/${proofId}/approve`,
     null,
     { params: { comment: comment || '' } }
   )
-  return response.data
 }
 
 /**
  * ✅ 审核证明材料 - 驳回
  */
 export const rejectProof = async (proofId: number, comment?: string): Promise<ApiResponse<null>> => {
-  const response = await apiClient.post<ApiResponse<null>>(
+  return await apiClient.post(
     `${apiBaseUrl}/api/proof/${proofId}/reject`,
     null,
     { params: { comment: comment || '' } }
   )
-  return response.data
 }
 
 // ========== 文件相关 API ==========
@@ -143,13 +141,9 @@ export const uploadProofFile = async (file: File): Promise<{ fileId: number; fil
     headers: { 'Content-Type': 'multipart/form-data' }
   })
   
-  if (response.data.code === 200) {
-    return {
-      fileId: response.data.data.fileId,
-      fileName: response.data.data.originalName
-    }
-  } else {
-    throw new Error(response.data.msg || '文件上传失败')
+  return {
+    fileId: response.data.fileId,
+    fileName: response.data.originalName
   }
 }
 
@@ -157,18 +151,19 @@ export const uploadProofFile = async (file: File): Promise<{ fileId: number; fil
  * ✅ 根据 fileId 获取预览 URL
  */
 export const getFilePreviewById = async (fileId: number, expiryMinutes: number = 60) => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/file/${fileId}/preview`, {
+  return await apiClient.get(`${apiBaseUrl}/api/file/${fileId}/preview`, {
     params: { expiryMinutes }
   })
-  return response.data
 }
 
 /**
  * ✅ 根据 fileId 下载文件
  */
 export const downloadFileById = async (fileId: number, fileName: string) => {
-  const response = await apiClient.get(`${apiBaseUrl}/api/file/download/${fileId}`, {
-    responseType: 'blob'
+  const token = localStorage.getItem('accessToken')
+  const response = await axios.get(`${apiBaseUrl}/api/file/download/${fileId}`, {
+    responseType: 'blob',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
   
   const blob = new Blob([response.data])
@@ -189,11 +184,10 @@ export const getFileUrl = async (
   fileUrl: string,
   type: 0 | 1 = 0
 ): Promise<ApiResponse<string>> => {
-  const response = await apiClient.get<ApiResponse<string>>(
+  return await apiClient.get(
     `${apiBaseUrl}/api/student-bonus/file/url`,
     { params: { fileUrl, type } }
   )
-  return response.data
 }
 
 /**
@@ -216,22 +210,20 @@ export const getFileDownloadUrl = async (fileUrl: string): Promise<ApiResponse<s
  * ✅ 审核通过
  */
 export const approveRecord = async (data: AuditRequest): Promise<ApiResponse<null>> => {
-  const response = await apiClient.post<ApiResponse<null>>(
+  return await apiClient.post(
     `${apiBaseUrl}/api/application/audit/approve`,
     data
   )
-  return response.data
 }
 
 /**
  * ✅ 审核驳回
  */
 export const rejectRecord = async (data: AuditRequest): Promise<ApiResponse<null>> => {
-  const response = await apiClient.post<ApiResponse<null>>(
+  return await apiClient.post(
     `${apiBaseUrl}/api/application/audit/reject`,
     data
   )
-  return response.data
 }
 
 
@@ -239,11 +231,10 @@ export const rejectRecord = async (data: AuditRequest): Promise<ApiResponse<null
  * ✅ 撤销已通过的申请
  */
 export const revokeRecord = async (data: RevokeRequest): Promise<ApiResponse<null>> => {
-  const response = await apiClient.post<ApiResponse<null>>(
+  return await apiClient.post(
     `${apiBaseUrl}/api/application/audit/revoke`,
     data
   )
-  return response.data
 }
 
 /**
@@ -254,12 +245,11 @@ export const overrideProof = async (
   status: 1 | 2,
   comment?: string
 ): Promise<ApiResponse<null>> => {
-  const response = await apiClient.put<ApiResponse<null>>(
+  return await apiClient.put(
     `${apiBaseUrl}/api/proof/${proofId}/override`,
     null,
     { params: { status, comment } }
   )
-  return response.data
 }
 
 /**
@@ -272,7 +262,7 @@ export const getPendingRecordsPaged = async (
   studentName?: string,
   major?: string
 ): Promise<ApiResponse<PageResponse<AuditRecord>>> => {
-  const response = await apiClient.get<ApiResponse<PageResponse<AuditRecord>>>(
+  return await apiClient.get(
     `${apiBaseUrl}/api/application/audit/pending`,
     { 
       params: { 
@@ -284,7 +274,6 @@ export const getPendingRecordsPaged = async (
       } 
     }
   )
-  return response.data
 }
 
 /**
@@ -297,7 +286,7 @@ export const getAuditHistoryPaged = async (
   studentName?: string,
   major?: string
 ): Promise<ApiResponse<PageResponse<AuditRecord>>> => {
-  const response = await apiClient.get<ApiResponse<PageResponse<AuditRecord>>>(
+  return await apiClient.get(
     `${apiBaseUrl}/api/application/audit/history`,
     { 
       params: { 
@@ -309,5 +298,4 @@ export const getAuditHistoryPaged = async (
       } 
     }
   )
-  return response.data
 }

@@ -28,7 +28,6 @@ onMounted(async () => {
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  user-select: none;
 }
 
 .admin-main {
@@ -38,5 +37,18 @@ onMounted(async () => {
   height: 100vh;
   height: 100dvh;
   overflow-y: auto;
+  background: #f5f7fb;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
+}
+
+.admin-main::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.admin-main::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.6);
+  border-radius: 999px;
 }
 </style>
