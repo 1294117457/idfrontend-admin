@@ -1,6 +1,10 @@
 import apiClient from '@common/utils/http'
 
-// ==================== 学生相关类型 ====================
+export interface ApiResponse<T = any> {
+  code: number
+  msg: string
+  data: T
+}
 
 export interface StudentDTO {
   fullName?: string
@@ -48,39 +52,22 @@ export interface StudentQueryParams {
   pageSize: number
 }
 
-// ==================== 学生 API（对应后端 /api/user/student/*）====================
-
-/**
- * 绑定学生信息（无需验证码）
- */
-export const bindStudentInfo = async (data: StudentDTO) => {
+export const bindStudentInfo = async (data: StudentDTO): Promise<ApiResponse<BindStudentVO>> => {
   return await apiClient.post('/api/user/student/bind', data)
 }
 
-/**
- * 获取学生基本信息
- */
-export const getStudentBasicInfo = async () => {
+export const getStudentBasicInfo = async (): Promise<ApiResponse<StudentDTO>> => {
   return await apiClient.get('/api/user/student/info')
 }
 
-/**
- * 更新学生信息
- */
-export const updateStudentInfo = async (data: StudentDTO) => {
+export const updateStudentInfo = async (data: StudentDTO): Promise<ApiResponse<any>> => {
   return await apiClient.put('/api/user/student/info', data)
 }
 
-/**
- * 确认学生信息
- */
-export const confirmStudentInfo = async () => {
+export const confirmStudentInfo = async (): Promise<ApiResponse<any>> => {
   return await apiClient.post('/api/user/student/confirm')
 }
 
-/**
- * 管理员分页查询学生数据
- */
-export const getStudentDataList = async (params: StudentQueryParams) => {
+export const getStudentDataList = async (params: StudentQueryParams): Promise<ApiResponse<any>> => {
   return await apiClient.get('/api/user/student/list', { params })
 }

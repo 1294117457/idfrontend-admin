@@ -129,7 +129,7 @@ export const rejectProof = async (proofId: number, comment?: string): Promise<Ap
 // ========== 文件相关 API ==========
 
 /**
- * ✅ 上传证明文件（教师端也可能需要）
+ * 上传证明文件
  */
 export const uploadProofFile = async (file: File): Promise<{ fileId: number; fileName: string }> => {
   const formData = new FormData()
@@ -137,20 +137,20 @@ export const uploadProofFile = async (file: File): Promise<{ fileId: number; fil
   formData.append('fileCategory', 'SCORE_PROOF')
   formData.append('filePurpose', '加分申请证明材料')
 
-  const response = await apiClient.post(`${apiBaseUrl}/api/file/upload`, formData, {
+  const res = await apiClient.post<{ fileId: number; originalName: string }>(`${apiBaseUrl}/api/file/upload`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
-  
+
   return {
-    fileId: response.data.fileId,
-    fileName: response.data.originalName
+    fileId: res.data.fileId,
+    fileName: res.data.originalName
   }
 }
 
 /**
- * ✅ 根据 fileId 获取预览 URL
+ * 根据 fileId 获取预览 URL
  */
-export const getFilePreviewById = async (fileId: number, expiryMinutes: number = 60) => {
+export const getFilePreviewById = async (fileId: number, expiryMinutes: number = 60): Promise<ApiResponse<string>> => {
   return await apiClient.get(`${apiBaseUrl}/api/file/${fileId}/preview`, {
     params: { expiryMinutes }
   })

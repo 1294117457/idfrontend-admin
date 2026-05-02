@@ -1,5 +1,10 @@
 import apiClient from '@common/utils/http'
-const apiBaseUrl = import.meta.env.VITE_BASE_API
+
+export interface ApiResponse<T = any> {
+  code: number
+  msg: string
+  data: T
+}
 
 export interface DemandTemplate {
   id?: number
@@ -22,37 +27,22 @@ export interface DemandTemplateDto {
   isActive?: number
 }
 
-/**
- * 获取所有模板(教师端)
- */
-export const getAllTemplates = async () => {
-  return await apiClient.get(`${apiBaseUrl}/api/demand-template/list`)
+export const getAllTemplates = async (): Promise<ApiResponse<any>> => {
+  return await apiClient.get('/api/demand-template/list')
 }
 
-/**
- * 创建模板
- */
-export const createTemplate = async (data: DemandTemplateDto) => {
-  return await apiClient.post(`${apiBaseUrl}/api/demand-template/create`, data)
+export const createTemplate = async (data: DemandTemplateDto): Promise<ApiResponse<any>> => {
+  return await apiClient.post('/api/demand-template/create', data)
 }
 
-/**
- * 更新模板
- */
-export const updateTemplate = async (id: number, data: DemandTemplateDto) => {
-  return await apiClient.put(`${apiBaseUrl}/api/demand-template/${id}`, data)
+export const updateTemplate = async (id: number, data: DemandTemplateDto): Promise<ApiResponse<any>> => {
+  return await apiClient.put(`/api/demand-template/${id}`, data)
 }
 
-/**
- * 删除模板
- */
-export const deleteTemplate = async (id: number) => {
-  return await apiClient.delete(`${apiBaseUrl}/api/demand-template/${id}`)
+export const deleteTemplate = async (id: number): Promise<ApiResponse<any>> => {
+  return await apiClient.delete(`/api/demand-template/${id}`)
 }
 
-/**
- * 获取启用的模板(学生端)
- */
-export const getActiveTemplates = async () => {
-  return await apiClient.get(`${apiBaseUrl}/api/demand-template/active`)
+export const getActiveTemplates = async (): Promise<ApiResponse<any>> => {
+  return await apiClient.get('/api/demand-template/active')
 }

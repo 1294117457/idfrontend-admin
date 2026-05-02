@@ -1,7 +1,11 @@
 import apiClient from '@common/utils/http'
-const apiBaseUrl = import.meta.env.VITE_BASE_API
 
-// ✅ 修改规则接口 (移除 ruleName 和 description)
+export interface ApiResponse<T = any> {
+  code: number
+  msg: string
+  data: T
+}
+
 export interface ScoringRule {
   id?: number
   ruleType: 'CONDITION' | 'TRANSFORM'
@@ -10,7 +14,6 @@ export interface ScoringRule {
   attributeIds?: number[]
 }
 
-// ✅ 模板接口保持不变
 export interface BonusTemplate {
   id?: number
   templateName: string
@@ -24,24 +27,22 @@ export interface BonusTemplate {
   rules: ScoringRule[]
 }
 
-// ==================== 模板接口 ====================
-
-export const getTemplateList = async () => {
-  return await apiClient.get(`${apiBaseUrl}/api/bonus-template/list`)
+export const getTemplateList = async (): Promise<ApiResponse<any>> => {
+  return await apiClient.get('/api/bonus-template/list')
 }
 
-export const createTemplate = async (data: BonusTemplate) => {
-  return await apiClient.post(`${apiBaseUrl}/api/bonus-template/create`, data)
+export const createTemplate = async (data: BonusTemplate): Promise<ApiResponse<any>> => {
+  return await apiClient.post('/api/bonus-template/create', data)
 }
 
-export const updateTemplate = async (id: number, data: BonusTemplate) => {
-  return await apiClient.put(`${apiBaseUrl}/api/bonus-template/${id}`, data)
+export const updateTemplate = async (id: number, data: BonusTemplate): Promise<ApiResponse<any>> => {
+  return await apiClient.put(`/api/bonus-template/${id}`, data)
 }
 
-export const deleteTemplate = async (id: number) => {
-  return await apiClient.delete(`${apiBaseUrl}/api/bonus-template/${id}`)
+export const deleteTemplate = async (id: number): Promise<ApiResponse<any>> => {
+  return await apiClient.delete(`/api/bonus-template/${id}`)
 }
 
-export const getTemplateDetail = async (id: number) => {
-  return await apiClient.get(`${apiBaseUrl}/api/bonus-template/${id}`)
+export const getTemplateDetail = async (id: number): Promise<ApiResponse<any>> => {
+  return await apiClient.get(`/api/bonus-template/${id}`)
 }

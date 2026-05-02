@@ -58,8 +58,8 @@
           <el-button type="primary" @click="showEditDialog">修改学生信息</el-button>
         </div>
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="姓名">{{ userInfo.fullName }}</el-descriptions-item>
-          <el-descriptions-item label="专业">{{ userInfo.major }}</el-descriptions-item>
+          <el-descriptions-item label="姓名">{{ userInfo?.fullName || '' }}</el-descriptions-item>
+          <el-descriptions-item label="专业">{{ userInfo?.major || '' }}</el-descriptions-item>
           <el-descriptions-item label="年级">
             <el-tag>{{ getGradeText(userInfo.grade) }}</el-tag>
           </el-descriptions-item>
