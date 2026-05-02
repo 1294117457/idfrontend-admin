@@ -8,17 +8,9 @@
   },
   "scripts": {
     "dev": "vite --open --mode dev",
-    "test": "vite --open --mode test",
-    "build": "vite build --mode dev",
-    "build:test": "vite build --mode test",
-    "build:prod": "vite build --mode prod",
+    "build": "vite build --mode prod",
     "preview": "vite preview",
-    "test:unit": "vitest",
-    "build-only": "vite build",
     "type-check": "vue-tsc --build",
-    "lint:oxlint": "oxlint . --fix -D correctness --ignore-path .gitignore",
-    "lint:eslint": "eslint . --fix",
-    "lint": "run-s lint:*",
     "format": "prettier --write src/"
   },
   "dependencies": {
