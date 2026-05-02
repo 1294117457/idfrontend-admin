@@ -1,0 +1,1 @@
+docker build -t idfrontend-admin:1.0 .
