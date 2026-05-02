@@ -249,7 +249,7 @@ import {
   type AuditRecord,
   type ProofFileItem
 } from '@/api/modules/apiScore'
-import FileUtil from '@/components/fileUtil.vue'
+import FileUtil from '@/components/FileUtil.vue'
 
 // ==================== 基础状态 ====================
 const loading = ref(false)
