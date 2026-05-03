@@ -178,15 +178,16 @@ export const downloadFileById = async (fileId: number, fileName: string) => {
 }
 
 /**
- * ✅ 获取文件 URL（预览/下载统一接口，兼容旧格式）
+ * ✅ 获取文件 URL（预览/下载统一接口）
+ * 兼容旧格式：通过 objectName 获取预览URL
  */
 export const getFileUrl = async (
   fileUrl: string,
   type: 0 | 1 = 0
 ): Promise<ApiResponse<string>> => {
   return await apiClient.get(
-    `${apiBaseUrl}/api/student-bonus/file/url`,
-    { params: { fileUrl, type } }
+    `${apiBaseUrl}/api/file/preview-by-name`,
+    { params: { objectName: fileUrl, expiryMinutes: 60 } }
   )
 }
 

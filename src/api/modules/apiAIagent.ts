@@ -106,19 +106,19 @@ export interface KnowledgeStats {
 
 /** 获取知识库文件列表 */
 export const listKnowledge = async (): Promise<ApiResponse<KnowledgeFile[]>> => {
-  return await apiClient.get(`${apiBaseUrl}/api/knowledge/list`)
+  return await apiClient.get(`${apiBaseUrl}/api/agent/knowledge/list`)
 }
 
 /** 获取知识库统计（文件列表 + 分块总数） */
 export const getKnowledgeStats = async (): Promise<ApiResponse<KnowledgeStats>> => {
-  return await apiClient.get(`${apiBaseUrl}/api/knowledge/stats`)
+  return await apiClient.get(`${apiBaseUrl}/api/agent/knowledge/stats`)
 }
 
 /** 上传知识库文件 */
 export const uploadKnowledge = async (file: File): Promise<ApiResponse<UploadResult>> => {
   const formData = new FormData()
   formData.append('file', file)
-  return await apiClient.post(`${apiBaseUrl}/api/knowledge/upload`, formData, {
+  return await apiClient.post(`${apiBaseUrl}/api/agent/knowledge/upload`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     timeout: 300000,
   })
@@ -126,7 +126,7 @@ export const uploadKnowledge = async (file: File): Promise<ApiResponse<UploadRes
 
 /** 删除知识库文件 */
 export const deleteKnowledge = async (sourceFile: string): Promise<ApiResponse<void>> => {
-  return await apiClient.delete(`${apiBaseUrl}/api/knowledge/${encodeURIComponent(sourceFile)}`)
+  return await apiClient.delete(`${apiBaseUrl}/api/agent/knowledge/${encodeURIComponent(sourceFile)}`)
 }
 
 /** AI 配置 */

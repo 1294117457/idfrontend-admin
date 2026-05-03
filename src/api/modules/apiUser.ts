@@ -108,12 +108,19 @@ export const getUserListForAdmin = async (params: UserManageQueryParams): Promis
   return await apiClient.get('/api/user/admin/list', { params })
 }
 
+/**
+ * 获取用户角色列表
+ */
 export const getUserRoles = async (userId: number): Promise<ApiResponse<any>> => {
-  return await apiClient.get(`/api/auth/role/${userId}/roles`)
+  return await apiClient.get(`/api/user/${userId}/roles`)
 }
 
+/**
+ * 为用户分配角色
+ * 注意：userId 从 URL path 获取，请求体只传 roleIds
+ */
 export const assignUserRoles = async (userId: number, roleIds: number[]): Promise<ApiResponse<any>> => {
-  return await apiClient.post('/api/auth/role/assign', { userId, roleIds })
+  return await apiClient.post(`/api/user/${userId}/roles`, { roleIds })
 }
 
 export const updateUserStatus = async (userId: number, status: 'active' | 'inactive'): Promise<ApiResponse<any>> => {
