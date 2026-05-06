@@ -160,12 +160,9 @@ const loadPermissions = async () => {
   loading.value = true
   try {
     const response = await getPermissionList()
-    if (response.code === 200) {
-      permissionList.value = response.data || []
-      console.log('✅ 权限列表:', permissionList.value)
-    } else {
-      ElMessage.error(response.msg || '加载失败')
-    }
+    if (response.code !== 200) return
+    permissionList.value = response.data || []
+    console.log('✅ 权限列表:', permissionList.value)
   } catch (error) {
     console.error('❌ 加载权限失败:', error)
     ElMessage.error('加载权限失败')
@@ -231,24 +228,14 @@ const confirmSave = async () => {
     if (isEdit.value) {
       // 编辑
       const response = await updatePermission(permForm)
-      if (response.code === 200) {
-        ElMessage.success('更新成功')
-        formDialogVisible.value = false
-        await loadPermissions()
-      } else {
-        ElMessage.error(response.msg || '更新失败')
-      }
+      if (response.code !== 200) return
     } else {
       // 新增
       const response = await createPermission(permForm)
-      if (response.code === 200) {
-        ElMessage.success('创建成功')
-        formDialogVisible.value = false
-        await loadPermissions()
-      } else {
-        ElMessage.error(response.msg || '创建失败')
-      }
+      if (response.code !== 200) return
     }
+    formDialogVisible.value = false
+    await loadPermissions()
   } catch (error: any) {
     console.error('❌ 保存失败:', error)
     ElMessage.error(error.response?.data?.msg || '操作失败')
@@ -271,12 +258,8 @@ const handleDelete = async (row: PermissionPO) => {
     )
 
     const response = await deletePermission(row.id)
-    if (response.code === 200) {
-      ElMessage.success('删除成功')
-      await loadPermissions()
-    } else {
-      ElMessage.error(response.msg || '删除失败')
-    }
+    if (response.code !== 200) return
+    await loadPermissions()
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('❌ 删除失败:', error)

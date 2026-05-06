@@ -235,16 +235,12 @@ const handleAvatarUpload = async (options: UploadRequestOptions) => {
   uploadingAvatar.value = true
   try {
     const response = await uploadAvatar(options.file as File)
-    if (response.code === 200) {
-      userEditForm.value.avatar = response.data
-      avatarPreviewUrl.value = response.data
-      userStore.updateUserInfo({ avatar: response.data })
-      if (userInfo.value) {
-        userInfo.value.avatar = response.data
-      }
-      ElMessage.success('头像上传成功')
-    } else {
-      ElMessage.error(response.msg || '头像上传失败')
+    if (response.code !== 200) return
+    userEditForm.value.avatar = response.data
+    avatarPreviewUrl.value = response.data
+    userStore.updateUserInfo({ avatar: response.data })
+    if (userInfo.value) {
+      userInfo.value.avatar = response.data
     }
   } catch (error: any) {
     ElMessage.error(error.response?.data?.msg || '头像上传失败')
@@ -265,17 +261,13 @@ const updateUserInfo = async () => {
       phone: userEditForm.value.phone || undefined,
       avatar: userEditForm.value.avatar || undefined,
     })
-    if (response.code === 200) {
-      ElMessage.success('用户信息更新成功')
-      userEditDialogVisible.value = false
-      userStore.updateUserInfo({
-        phone: userEditForm.value.phone,
-        avatar: userEditForm.value.avatar,
-      })
-      await fetchUserInfo()
-    } else {
-      ElMessage.error(response.msg || '更新失败')
-    }
+    if (response.code !== 200) return
+    userEditDialogVisible.value = false
+    userStore.updateUserInfo({
+      phone: userEditForm.value.phone,
+      avatar: userEditForm.value.avatar,
+    })
+    await fetchUserInfo()
   } catch (error: any) {
     ElMessage.error(error.response?.data?.msg || '更新失败')
   } finally {
@@ -292,10 +284,8 @@ const bindStudent = async () => {
   submitting.value = true
   try {
     const response = await bindStudentInfo(bindForm.value)
-    if (response.code === 200) {
-      ElMessage.success('学生信息绑定成功')
-      await fetchUserInfo()
-    }
+    if (response.code !== 200) return
+    await fetchUserInfo()
   } catch (error: any) {
     ElMessage.error(error.response?.data?.msg || '绑定失败')
   } finally {
@@ -324,11 +314,9 @@ const updateStudent = async () => {
   submitting.value = true
   try {
     const response = await updateStudentInfo(editForm.value)
-    if (response.code === 200) {
-      ElMessage.success('学生信息更新成功')
-      editDialogVisible.value = false
-      await fetchUserInfo()
-    }
+    if (response.code !== 200) return
+    editDialogVisible.value = false
+    await fetchUserInfo()
   } catch (error: any) {
     ElMessage.error(error.response?.data?.msg || '更新失败')
   } finally {

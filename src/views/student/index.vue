@@ -88,12 +88,9 @@
 
       const response = await getStudentDataList(params)
 
-      if (response.code === 200) {
-        students.value = response.data.list
-        totalItems.value = response.data.total
-      } else {
-        ElMessage.error(response.msg || '加载失败')
-      }
+      if (response.code !== 200) return
+    students.value = response.data.list
+    totalItems.value = response.data.total
     } catch (error) {
       console.error('加载数据失败:', error)
       ElMessage.error('加载数据失败')

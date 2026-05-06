@@ -6,7 +6,7 @@
     @open="handleOpen"
     @close="handleClose"
   >
-    <template v-for="item in sortedMenuRoutes" :key="item.path">
+    <template v-for="(item, index) in sortedMenuRoutes" :key="item.path + '-' + index">
       <el-sub-menu
         v-if="item.children && item.children.length"
         :index="item.path"
@@ -18,7 +18,7 @@
         </template>
         <el-menu-item
           v-for="sub in item.children"
-          :key="sub.path"
+          :key="sub.path + '-' + index"
           :index="item.path + '/' + sub.path"
           @click="navigateTo('/home/' + item.path + '/' + sub.path)"
         >

@@ -195,12 +195,9 @@ const loadRoles = async () => {
   loading.value = true
   try {
     const response = await getRoleList()
-    if (response.code === 200) {
-      roleList.value = response.data || []
-      console.log('✅ 角色列表:', roleList.value)
-    } else {
-      ElMessage.error(response.msg || '加载失败')
-    }
+    if (response.code !== 200) return
+    roleList.value = response.data || []
+    console.log('✅ 角色列表:', roleList.value)
   } catch (error) {
     console.error('❌ 加载角色失败:', error)
     ElMessage.error('加载角色失败')
@@ -212,31 +209,29 @@ const loadRoles = async () => {
 const loadPermissions = async () => {
   try {
     const response = await getPermissionList()
-    if (response.code === 200) {
-      const permissions = response.data || []
-      
-      // 按模块分组
-      const grouped = permissions.reduce((acc: any, perm: PermissionPO) => {
-        if (!acc[perm.module]) {
-          acc[perm.module] = []
-        }
-        acc[perm.module].push({
-          id: perm.id,
-          permissionName: perm.permissionName,
-          permissionCode: perm.permissionCode
-        })
-        return acc
-      }, {})
-      
-      // 转换为树形结构
-      permTreeData.value = Object.keys(grouped).map(module => ({
-        id: `module_${module}`,
-        permissionName: module,
-        children: grouped[module]
-      }))
-      
-      console.log('✅ 权限树:', permTreeData.value)
-    }
+    const permissions = response.data || []
+    
+    // 按模块分组
+    const grouped = permissions.reduce((acc: any, perm: PermissionPO) => {
+      if (!acc[perm.module]) {
+        acc[perm.module] = []
+      }
+      acc[perm.module].push({
+        id: perm.id,
+        permissionName: perm.permissionName,
+        permissionCode: perm.permissionCode
+      })
+      return acc
+    }, {})
+    
+    // 转换为树形结构
+    permTreeData.value = Object.keys(grouped).map(module => ({
+      id: `module_${module}`,
+      permissionName: module,
+      children: grouped[module]
+    }))
+    
+    console.log('✅ 权限树:', permTreeData.value)
   } catch (error) {
     console.error('❌ 加载权限失败:', error)
   }
@@ -288,24 +283,14 @@ const confirmSave = async () => {
     if (isEdit.value) {
       // 编辑
       const response = await updateRole(roleForm)
-      if (response.code === 200) {
-        ElMessage.success('更新成功')
-        formDialogVisible.value = false
-        await loadRoles()
-      } else {
-        ElMessage.error(response.msg || '更新失败')
-      }
+      if (response.code !== 200) return
     } else {
       // 新增
       const response = await createRole(roleForm)
-      if (response.code === 200) {
-        ElMessage.success('创建成功')
-        formDialogVisible.value = false
-        await loadRoles()
-      } else {
-        ElMessage.error(response.msg || '创建失败')
-      }
+      if (response.code !== 200) return
     }
+    formDialogVisible.value = false
+    await loadRoles()
   } catch (error: any) {
     console.error('❌ 保存失败:', error)
     ElMessage.error(error.response?.data?.msg || '操作失败')
@@ -333,12 +318,8 @@ const handleDelete = async (row: RolePO) => {
     )
 
     const response = await deleteRole(row.id)
-    if (response.code === 200) {
-      ElMessage.success('删除成功')
-      await loadRoles()
-    } else {
-      ElMessage.error(response.msg || '删除失败')
-    }
+    if (response.code !== 200) return
+    await loadRoles()
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('❌ 删除失败:', error)
@@ -354,10 +335,8 @@ const handleAssignPermissions = async (row: RolePO) => {
   try {
     // 获取角色已有的权限
     const response = await getRolePermissions(row.id)
-    if (response.code === 200) {
-      selectedPermIds.value = (response.data || []).map((p: PermissionPO) => p.id)
-      console.log('✅ 角色权限:', selectedPermIds.value)
-    }
+    selectedPermIds.value = (response.data || []).map((p: PermissionPO) => p.id)
+    console.log('✅ 角色权限:', selectedPermIds.value)
   } catch (error) {
     console.error('❌ 获取角色权限失败:', error)
   }
@@ -379,12 +358,8 @@ const confirmAssignPermissions = async () => {
       permissionIds: selectedIds
     })
 
-    if (response.code === 200) {
-      ElMessage.success('权限分配成功')
-      permDialogVisible.value = false
-    } else {
-      ElMessage.error(response.msg || '权限分配失败')
-    }
+    if (response.code !== 200) return
+    permDialogVisible.value = false
   } catch (error: any) {
     console.error('❌ 权限分配失败:', error)
     ElMessage.error(error.response?.data?.msg || '权限分配失败')

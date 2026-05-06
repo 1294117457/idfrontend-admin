@@ -261,9 +261,7 @@ const loadAttributes = async () => {
       response = await getAllAttributes()
     }
     
-    if (response.code === 200) {
-      attributeList.value = response.data
-    }
+    attributeList.value = response.data
   } catch (error) {
     ElMessage.error('加载失败')
   }
@@ -289,22 +287,20 @@ const openCreateDialog = () => {
 const openEditGroupDialog = async (code: string) => {
   try {
     const response = await getAttributesByCode(code)
-    if (response.code === 200) {
-      const attrs = response.data
-      isEditGroup.value = true
-      groupFormData.attributeCode = code
-      groupFormData.attributeType = attrs[0].attributeType
-      groupFormData.attributes = attrs.map((a: RuleAttribute) => ({
-        id: a.id,
-        attributeValue: a.attributeValue,
-        inputMax: a.inputMax,
-        inputMin: a.inputMin,
-        inputInterval: a.inputInterval,
-        displayOrder: a.displayOrder,
-        description: a.description
-      }))
-      groupDialogVisible.value = true
-    }
+    const attrs = response.data
+    isEditGroup.value = true
+    groupFormData.attributeCode = code
+    groupFormData.attributeType = attrs[0].attributeType
+    groupFormData.attributes = attrs.map((a: RuleAttribute) => ({
+      id: a.id,
+      attributeValue: a.attributeValue,
+      inputMax: a.inputMax,
+      inputMin: a.inputMin,
+      inputInterval: a.inputInterval,
+      displayOrder: a.displayOrder,
+      description: a.description
+    }))
+    groupDialogVisible.value = true
   } catch (error) {
     ElMessage.error('加载失败')
   }
@@ -387,7 +383,6 @@ const handleGroupSubmit = async () => {
       }
     }
 
-    ElMessage.success('保存成功')
     groupDialogVisible.value = false
     loadAttributes()
   } catch (error) {
@@ -403,7 +398,6 @@ const handleDeleteGroup = async (code: string) => {
     })
 
     await deleteAttributesByCode(code)
-    ElMessage.success('删除成功')
     loadAttributes()
   } catch (error: any) {
     if (error !== 'cancel') {

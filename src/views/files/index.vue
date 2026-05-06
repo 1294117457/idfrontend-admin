@@ -248,12 +248,8 @@ const handleUpload = async (options: UploadRequestOptions) => {
       filePurpose: '公共文件管理'
     })
     
-    if (response.code === 200) {
-      ElMessage.success('上传成功')
-      await loadFiles()
-    } else {
-      ElMessage.error(response.msg || '上传失败')
-    }
+    if (response.code !== 200) return
+    await loadFiles()
   } catch (error) {
     ElMessage.error('上传失败')
     console.error('上传错误:', error)
@@ -304,19 +300,15 @@ const loadFiles = async () => {
     
     const response = await searchFiles(params)
     
-    if (response.code === 200) {
-      // ✅ 前端过滤文件类型（如果后端不支持扩展名筛选）
-      let list = response.data.list || []
-      
-      if (queryForm.fileExtension) {
-        list = list.filter(file => file.fileExtension === queryForm.fileExtension)
-      }
-      
-      fileList.value = list
-      totalItems.value = response.data.total || 0
-    } else {
-      ElMessage.error(response.msg || '查询失败')
+    // ✅ 前端过滤文件类型（如果后端不支持扩展名筛选）
+    let list = response.data.list || []
+    
+    if (queryForm.fileExtension) {
+      list = list.filter(file => file.fileExtension === queryForm.fileExtension)
     }
+    
+    fileList.value = list
+    totalItems.value = response.data.total || 0
   } catch (error) {
     ElMessage.error('查询失败')
     console.error('查询错误:', error)
@@ -333,16 +325,15 @@ const handlePreview = async (row: FileMetadataVO) => {
     
     const response = await getPreviewUrl(row.id, 60)
     
-    if (response.code === 200) {
-      previewUrl.value = response.data
-      setTimeout(() => {
-        previewDialogVisible.value = true
-        previewLoading.value = false
-      }, 100)
-    } else {
-      ElMessage.error(response.msg || '获取预览链接失败')
+    if (response.code !== 200) {
       previewLoading.value = false
+      return
     }
+    previewUrl.value = response.data
+    setTimeout(() => {
+      previewDialogVisible.value = true
+      previewLoading.value = false
+    }, 100)
   } catch (error) {
     ElMessage.error('预览失败')
     console.error('预览错误:', error)
@@ -359,7 +350,6 @@ const handlePreviewClose = () => {
 const handleDownload = async (row: FileMetadataVO) => {
   try {
     await downloadFile(row.id)
-    ElMessage.success('下载成功')
   } catch (error) {
     ElMessage.error('下载失败')
     console.error('下载错误:', error)
@@ -388,13 +378,9 @@ const confirmRename = async () => {
       originalName: newFullName
     })
     
-    if (response.code === 200) {
-      ElMessage.success('重命名成功')
-      renameDialogVisible.value = false
-      await loadFiles()
-    } else {
-      ElMessage.error(response.msg || '重命名失败')
-    }
+    if (response.code !== 200) return
+    renameDialogVisible.value = false
+    await loadFiles()
   } catch (error) {
     ElMessage.error('重命名失败')
     console.error('重命名错误:', error)
@@ -412,12 +398,8 @@ const handleDelete = async (row: FileMetadataVO) => {
     
     const response = await deleteFile(row.id)
     
-    if (response.code === 200) {
-      ElMessage.success('删除成功')
-      await loadFiles()
-    } else {
-      ElMessage.error(response.msg || '删除失败')
-    }
+    if (response.code !== 200) return
+    await loadFiles()
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('删除失败')

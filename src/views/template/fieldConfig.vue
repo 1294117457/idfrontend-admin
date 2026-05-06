@@ -310,13 +310,9 @@ const handleSaveNewField = async () => {
     if (!payload.conditions || (payload.conditions as string).trim() === '') payload.conditions = undefined as any
     if (payload.fieldType !== 'SCORE') payload.maxScore = undefined as any
     const res = await createFieldConfig(payload as Omit<FieldConfig, 'id'>)
-    if (res.code === 200) {
-      ElMessage.success('新增成功')
-      fieldDialogVisible.value = false
-      await loadFieldConfigs()
-    } else {
-      ElMessage.error(res.msg || '新增失败')
-    }
+    if (res.code !== 200) return
+    fieldDialogVisible.value = false
+    await loadFieldConfigs()
   } catch (error: any) {
     ElMessage.error(error.response?.data?.msg || '新增失败')
   } finally {
@@ -335,13 +331,9 @@ const handleSaveFieldInline = async () => {
     if (!payload.conditions || (payload.conditions as string).trim() === '') payload.conditions = undefined as any
     if (payload.fieldType !== 'SCORE') payload.maxScore = undefined as any
     const res = await updateFieldConfig(editingFieldId.value!, payload as FieldConfig)
-    if (res.code === 200) {
-      ElMessage.success('保存成功')
-      editingFieldId.value = null
-      await loadFieldConfigs()
-    } else {
-      ElMessage.error(res.msg || '保存失败')
-    }
+    if (res.code !== 200) return
+    editingFieldId.value = null
+    await loadFieldConfigs()
   } catch (error: any) {
     ElMessage.error(error.response?.data?.msg || '保存失败')
   } finally {
@@ -353,12 +345,8 @@ const handleDeleteField = async (id: number) => {
   try {
     await ElMessageBox.confirm('确认删除该字段配置？', '提示', { type: 'warning' })
     const res = await deleteFieldConfig(id)
-    if (res.code === 200) {
-      ElMessage.success('删除成功')
-      await loadFieldConfigs()
-    } else {
-      ElMessage.error(res.msg || '删除失败')
-    }
+    if (res.code !== 200) return
+    await loadFieldConfigs()
   } catch { /* cancelled */ }
 }
 
@@ -412,13 +400,9 @@ const handleSaveNewSub = async () => {
   try {
     const payload = { ...subForm.value, fieldId: addingSubFieldId.value!, isActive: true }
     const res = await createSubcategory(payload as Omit<FieldSubcategory, 'id'>)
-    if (res.code === 200) {
-      ElMessage.success('新增成功')
-      subDialogVisible.value = false
-      await refreshSubs(addingSubFieldId.value!)
-    } else {
-      ElMessage.error(res.msg || '新增失败')
-    }
+    if (res.code !== 200) return
+    subDialogVisible.value = false
+    await refreshSubs(addingSubFieldId.value!)
   } catch (error: any) {
     ElMessage.error(error.response?.data?.msg || '新增失败')
   } finally {
@@ -443,14 +427,10 @@ const handleSaveSubInline = async () => {
   saving.value = true
   try {
     const res = await updateSubcategory(editingSubId.value!, editSubForm.value as FieldSubcategory)
-    if (res.code === 200) {
-      ElMessage.success('保存成功')
-      const fieldId = editSubForm.value.fieldId!
-      editingSubId.value = null
-      await refreshSubs(fieldId)
-    } else {
-      ElMessage.error(res.msg || '保存失败')
-    }
+    if (res.code !== 200) return
+    const fieldId = editSubForm.value.fieldId!
+    editingSubId.value = null
+    await refreshSubs(fieldId)
   } catch (error: any) {
     ElMessage.error(error.response?.data?.msg || '保存失败')
   } finally {
@@ -462,12 +442,8 @@ const handleDeleteSubcategory = async (id: number, fieldId: number) => {
   try {
     await ElMessageBox.confirm('确认删除该细分类别？', '提示', { type: 'warning' })
     const res = await deleteSubcategory(id)
-    if (res.code === 200) {
-      ElMessage.success('删除成功')
-      await refreshSubs(fieldId)
-    } else {
-      ElMessage.error(res.msg || '删除失败')
-    }
+    if (res.code !== 200) return
+    await refreshSubs(fieldId)
   } catch { /* cancelled */ }
 }
 

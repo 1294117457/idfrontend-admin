@@ -14,5 +14,5 @@ const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
-app.use(ElementPlus) // 注册 Element Plus
+app.use(ElementPlus, { size: 'default' }) // 注册 Element Plus
 app.mount('#app')

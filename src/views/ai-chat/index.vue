@@ -505,7 +505,7 @@
       if (!messages.value[aiMsgIndex].content) {
         messages.value[aiMsgIndex].content = '抱歉，遇到了一些问题，请稍后再试。'
       }
-      ElMessage.error(msg || '发送失败')
+      console.error('SSE Error:', msg)
     },
     onDone() {
       isLoading.value = false
@@ -566,7 +566,6 @@
     supplementInput.value = ''
     pendingFile.value = null
     currentSessionId.value = 'sess_' + Date.now()
-    ElMessage.success('已开始新对话')
   }
   
   // 监听消息变化

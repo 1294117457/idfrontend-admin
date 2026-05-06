@@ -169,11 +169,8 @@
   const loadTemplates = async () => {
     try {
       const response = await getAllTemplates()
-      if (response.code === 200) {
-        templateList.value = response.data || []
-      } else {
-        ElMessage.error(response.msg || '加载失败')
-      }
+      if (response.code !== 200) return
+    templateList.value = response.data || []
     } catch (error) {
       console.error('加载模板失败:', error)
       ElMessage.error('加载模板失败')
@@ -249,13 +246,9 @@
         response = await createTemplate(data)
       }
       
-      if (response.code === 200) {
-        ElMessage.success(isEdit.value ? '更新成功' : '创建成功')
-        dialogVisible.value = false
-        loadTemplates()
-      } else {
-        ElMessage.error(response.msg || '操作失败')
-      }
+      if (response.code !== 200) return
+    dialogVisible.value = false
+    loadTemplates()
     } catch (error) {
       console.error('提交失败:', error)
       ElMessage.error('操作失败')
@@ -274,12 +267,8 @@
       })
       
       const response = await deleteTemplate(id)
-      if (response.code === 200) {
-        ElMessage.success('删除成功')
-        loadTemplates()
-      } else {
-        ElMessage.error(response.msg || '删除失败')
-      }
+      if (response.code !== 200) return
+    loadTemplates()
     } catch (error) {
       if (error !== 'cancel') {
         console.error('删除失败:', error)

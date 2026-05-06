@@ -16,7 +16,7 @@ import { onMounted } from 'vue'
 import TITLEUI from './titleUI.vue'
 import SIDEMENT from './SideMenu.vue'
 import TOPNAVE from './TopNave.vue'
-import AiAssistant from '@/views/ai-agent/index.vue'
+import AiAssistant from '@/views/ai-chat/index.vue'
 
 onMounted(async () => {
 })

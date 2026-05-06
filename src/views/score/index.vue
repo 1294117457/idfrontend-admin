@@ -42,12 +42,9 @@
     proofsLoading.value = true
     const response = await getApplicationProofs(applicationId)
     
-    if (response.code === 200) {
-      proofsList.value = response.data.proofs || []
-      console.log('✅ 加载证明材料成功:', proofsList.value)
-    } else {
-      ElMessage.error('加载证明材料失败: ' + response.msg)
-    }
+    if (response.code !== 200) return
+    proofsList.value = response.data.proofs || []
+    console.log('✅ 加载证明材料成功:', proofsList.value)
   } catch (error) {
     console.error('❌ 加载证明材料失败:', error)
     ElMessage.error('加载证明材料失败')
@@ -67,12 +64,8 @@
 
     const response = await approveProof(proofId, comment || '')
     
-    if (response.code === 200) {
-      ElMessage.success('证明材料审核通过')
-      await loadProofs(selectedRecord.value!.id)
-    } else {
-      ElMessage.error(response.msg || '审核失败')
-    }
+    if (response.code !== 200) return
+    await loadProofs(selectedRecord.value!.id)
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('❌ 审核失败:', error)
@@ -93,12 +86,8 @@
 
     const response = await rejectProof(proofId, comment || '')
     
-    if (response.code === 200) {
-      ElMessage.success('证明材料已驳回')
-      await loadProofs(selectedRecord.value!.id)
-    } else {
-      ElMessage.error(response.msg || '驳回失败')
-    }
+    if (response.code !== 200) return
+    await loadProofs(selectedRecord.value!.id)
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('❌ 驳回失败:', error)
@@ -119,12 +108,9 @@
         searchMajor.value
       )
   
-      if (response.code === 200) {
-        pendingRecords.value = response.data.records
-        totalItems.value = response.data.total
-      } else {
-        ElMessage.error('加载失败')
-      }
+      if (response.code !== 200) return
+    pendingRecords.value = response.data.records
+    totalItems.value = response.data.total
     } catch (error) {
       console.error('加载失败:', error)
       ElMessage.error('加载失败')
@@ -195,13 +181,9 @@
         comment: comment || ''
       })
   
-      if (response.code === 200) {
-        ElMessage.success('审核通过')
-        showDialog.value = false
-        loadPendingRecords()
-      } else {
-        ElMessage.error(response.msg || '审核失败')
-      }
+      if (response.code !== 200) return
+    showDialog.value = false
+    loadPendingRecords()
     } catch (error: any) {
       if (error !== 'cancel') {
         console.error('审核失败:', error)
@@ -227,13 +209,9 @@
         comment: comment || ''
       })
   
-      if (response.code === 200) {
-        ElMessage.success('已驳回')
-        showDialog.value = false
-        loadPendingRecords()
-      } else {
-        ElMessage.error(response.msg || '驳回失败')
-      }
+      if (response.code !== 200) return
+    showDialog.value = false
+    loadPendingRecords()
     } catch (error: any) {
       if (error !== 'cancel') {
         console.error('驳回失败:', error)
@@ -340,7 +318,6 @@
   const handleDownloadProof = async (fileId: number, fileName: string) => {
     try {
       await downloadFileById(fileId, fileName)
-      ElMessage.success('下载成功')
     } catch (error) {
       console.error('下载失败:', error)
       ElMessage.error('下载失败')

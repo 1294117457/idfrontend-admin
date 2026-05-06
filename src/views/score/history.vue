@@ -331,12 +331,9 @@ const loadData = async () => {
       searchMajor.value || undefined
     )
     
-    if (response.code === 200) {
-      historyRecords.value = response.data.records || []
-      totalItems.value = response.data.total || 0
-    } else {
-      ElMessage.error(response.msg || '加载数据失败')
-    }
+    if (response.code !== 200) return
+    historyRecords.value = response.data.records || []
+    totalItems.value = response.data.total || 0
   } catch (error) {
     console.error('加载数据失败:', error)
     ElMessage.error('加载数据失败')
@@ -412,14 +409,10 @@ const confirmRevoke = async () => {
       reason: revokeReason.value.trim()
     })
     
-    if (response.code === 200) {
-      ElMessage.success('撤销成功')
-      revokeDialogVisible.value = false
-      showDialog.value = false
-      await loadData()
-    } else {
-      ElMessage.error(response.msg || '撤销失败')
-    }
+    if (response.code !== 200) return
+    revokeDialogVisible.value = false
+    showDialog.value = false
+    await loadData()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('撤销失败:', error)

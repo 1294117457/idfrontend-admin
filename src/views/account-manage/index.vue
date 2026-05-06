@@ -297,19 +297,16 @@ const loadUsers = async () => {
       pageSize: pageSize.value
     })
 
-    if (response.code === 200) {
-      userList.value = response.data.list || []
-      totalItems.value = response.data.total || 0
-      
-      console.log('✅ 用户列表加载成功:', {
-        当前页: currentPage.value,
-        每页条数: pageSize.value,
-        总条数: totalItems.value,
-        当前页数据量: userList.value.length
-      })
-    } else {
-      ElMessage.error(response.msg || '加载失败')
-    }
+    if (response.code !== 200) return
+    userList.value = response.data.list || []
+    totalItems.value = response.data.total || 0
+    
+    console.log('✅ 用户列表加载成功:', {
+      当前页: currentPage.value,
+      每页条数: pageSize.value,
+      总条数: totalItems.value,
+      当前页数据量: userList.value.length
+    })
   } catch (error) {
     console.error('❌ 加载用户失败:', error)
     ElMessage.error('加载用户失败')
@@ -368,13 +365,9 @@ const confirmAdd = async () => {
   saving.value = true
   try {
     const response = await createUser(addForm)
-    if (response.code === 200) {
-      ElMessage.success('创建成功')
-      addDialogVisible.value = false
-      await loadUsers()
-    } else {
-      ElMessage.error(response.msg || '创建失败')
-    }
+    if (response.code !== 200) return
+    addDialogVisible.value = false
+    await loadUsers()
   } catch (error: any) {
     console.error('❌ 创建用户失败:', error)
     ElMessage.error(error.response?.data?.msg || '创建失败')
@@ -398,12 +391,8 @@ const handleToggleStatus = async (user: UserManageVO) => {
       }
     )
     const response = await updateUserStatus(user.userId, newStatus)
-    if (response.code === 200) {
-      ElMessage.success(`${action}成功`)
-      await loadUsers()
-    } else {
-      ElMessage.error(response.msg || `${action}失败`)
-    }
+    if (response.code !== 200) return
+    await loadUsers()
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error(`❌ ${action}用户失败:`, error)
@@ -431,12 +420,8 @@ const handleDelete = async (user: UserManageVO) => {
     )
 
     const response = await deleteUser(user.userId)
-    if (response.code === 200) {
-      ElMessage.success('删除成功')
-      await loadUsers()
-    } else {
-      ElMessage.error(response.msg || '删除失败')
-    }
+    if (response.code !== 200) return
+    await loadUsers()
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('❌ 删除用户失败:', error)
@@ -474,13 +459,9 @@ const confirmAssignRoles = async () => {
       selectedRoleIds.value
     )
 
-    if (response.code === 200) {
-      ElMessage.success('角色分配成功')
-      roleDialogVisible.value = false
-      await loadUsers()
-    } else {
-      ElMessage.error(response.msg || '角色分配失败')
-    }
+    if (response.code !== 200) return
+    roleDialogVisible.value = false
+    await loadUsers()
   } catch (error: any) {
     console.error('❌ 角色分配失败:', error)
     ElMessage.error(error.response?.data?.msg || '角色分配失败')
@@ -555,12 +536,9 @@ const confirmBatchImport = async () => {
   batchImporting.value = true
   try {
     const res = await batchCreateUsers(previewUsernames.value)
-    if (res.code === 200) {
-      batchResult.value = res.data
-      await loadUsers()
-    } else {
-      ElMessage.error(res.msg || '批量导入失败')
-    }
+    if (res.code !== 200) return
+    batchResult.value = res.data
+    await loadUsers()
   } catch (error: any) {
     ElMessage.error(error.response?.data?.msg || '批量导入失败')
   } finally {

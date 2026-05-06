@@ -492,13 +492,9 @@ const handleSubmit = async () => {
       response = await createTemplate(submitData)
     }
 
-    if (response.code === 200) {
-      ElMessage.success(isEdit.value ? '更新成功' : '创建成功')
-      dialogVisible.value = false
-      loadTemplates()
-    } else {
-      ElMessage.error(response.msg || '操作失败')
-    }
+    if (response.code !== 200) return
+    dialogVisible.value = false
+    loadTemplates()
   } catch (error) {
     console.error('提交失败:', error)
     ElMessage.error('提交失败，请检查网络或联系管理员')
@@ -584,12 +580,8 @@ const handleDelete = async (id: number) => {
   try {
     await ElMessageBox.confirm('确定删除?', '提示', { type: 'warning' })
     const response = await deleteTemplate(id)
-    if (response.code === 200) {
-      ElMessage.success('删除成功')
-      loadTemplates()
-    } else {
-      ElMessage.error(response.msg || '删除失败')
-    }
+    if (response.code !== 200) return
+    loadTemplates()
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('删除失败')
