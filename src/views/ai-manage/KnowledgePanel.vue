@@ -88,11 +88,11 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
-  getKnowledgeStats,
-  uploadKnowledge,
-  deleteKnowledge,
+  getKnowledgeStatsApi,
+  uploadKnowledgeApi,
+  deleteKnowledgeApi,
   type KnowledgeFile,
-} from '@/api/modules/apiAIagent'
+} from '@/api/agent'
 
 const loading = ref(false)
 const uploading = ref(false)
@@ -112,7 +112,7 @@ const loadStats = async () => {
   loading.value = true
   agentUnavailable.value = false
   try {
-    const res = await getKnowledgeStats()
+    const res = await getKnowledgeStatsApi()
     if (res.code === 200 && res.data) {
       stats.totalFiles = res.data.totalFiles
       stats.totalChunks = res.data.totalChunks
@@ -136,7 +136,7 @@ const handleUpload = async (e: Event) => {
   uploading.value = true
   uploadResult.value = null
   try {
-    const res = await uploadKnowledge(file)
+    const res = await uploadKnowledgeApi(file)
     if (res.code === 200 && res.data) {
       const d = res.data
       uploadResult.value = {
@@ -160,7 +160,7 @@ const handleUpload = async (e: Event) => {
 const handleDelete = async (sourceFile: string) => {
   deletingFile.value = sourceFile
   try {
-    const res = await deleteKnowledge(sourceFile)
+    const res = await deleteKnowledgeApi(sourceFile)
     if (res.code === 200) {
       ElMessage.success('删除成功')
       await loadStats()

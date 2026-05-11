@@ -100,7 +100,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getAIConfig, updateAIConfig, type AIConfig } from '@/api/modules/apiAIagent'
+import { getAIConfigApi, updateAIConfigApi, type AIConfig } from '@/api/agent'
 
 const loading = ref(false)
 const saving = ref(false)
